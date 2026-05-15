@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT Verbal — Error Pattern Report</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e0e0e0;
+    --sub: #888;
+    --red: #ff4d4d;
+    --amber: #f59e0b;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --purple: #a855f7;
+    --teal: #14b8a6;
+    --pill-red: #3a1a1a;
+    --pill-amber: #2d2000;
+    --pill-blue: #0d1a33;
+    --pill-neutral: #222;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
+  .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .sub { color: var(--sub); font-size: 12px; margin-bottom: 16px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media(max-width: 600px) { .grid-4, .grid-3 { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .stat-val { font-size: 28px; font-weight: 700; }
+  .stat-val.danger { color: var(--red); }
+  .stat-val.warning { color: var(--amber); }
+  .stat-label { font-size: 11px; color: var(--sub); margin-top: 2px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .card-header { padding: 12px 14px; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+  .card-header:hover { background: #222; }
+  .card-body { padding: 12px 14px; border-top: 1px solid var(--border); }
+  .card-body.hidden { display: none; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+  .pill-red { background: var(--pill-red); color: var(--red); }
+  .pill-amber { background: var(--pill-amber); color: var(--amber); }
+  .pill-blue { background: var(--pill-blue); color: var(--blue); }
+  .pill-neutral { background: var(--pill-neutral); color: var(--sub); }
+  .pill-purple { background: #1e0a2e; color: var(--purple); }
+  .pill-teal { background: #0a1e1e; color: var(--teal); }
+  .callout { border-radius: 6px; padding: 10px 12px; margin: 8px 0; }
+  .callout-blue { background: #0d1a33; border-left: 3px solid var(--blue); }
+  .callout-amber { background: var(--pill-amber); border-left: 3px solid var(--amber); }
+  .callout-red { background: var(--pill-red); border-left: 3px solid var(--red); }
+  .callout-neutral { background: #1e1e1e; border-left: 3px solid #444; }
+  .callout-label { font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .callout-text { font-size: 13px; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .meta-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 8px 0; font-size: 12px; color: var(--sub); }
+  .meta-row span b { color: var(--text); }
+  .sticky { font-style: italic; font-weight: 600; font-size: 13px; color: var(--blue); }
+  .rep-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .rep-table th { text-align: left; font-size: 11px; color: var(--sub); padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  .rep-table td { padding: 5px 6px; font-size: 12px; border-bottom: 1px solid #1e1e1e; vertical-align: top; }
+  .rep-table td:first-child { white-space: nowrap; color: var(--sub); }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; border: 1px solid var(--border); background: #1a1a1a; color: var(--sub); cursor: pointer; }
+  .filter-btn.active { border-color: var(--blue); background: var(--pill-blue); color: var(--blue); }
+  .pattern-row { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .pattern-row.hidden { display: none; }
+  .pattern-header { padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .pattern-header:hover { background: #222; }
+  .p-id { font-size: 11px; font-weight: 700; color: var(--sub); min-width: 90px; padding-top: 2px; }
+  .p-label { font-size: 13px; font-weight: 500; flex: 1; }
+  .p-counts { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .pattern-detail { padding: 12px 14px; border-top: 1px solid var(--border); display: none; }
+  .pattern-detail.open { display: block; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  @media(max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sub); margin-bottom: 6px; }
+  .ntr-item { padding: 4px 0; font-size: 12px; border-bottom: 1px solid #1e1e1e; display: flex; gap: 8px; }
+  .ntr-num { color: var(--sub); min-width: 18px; flex-shrink: 0; }
+  .exec-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .exec-item { padding: 5px 0; font-size: 13px; border-bottom: 1px solid #1f1f1f; }
+  .exec-item:last-child { border-bottom: none; }
+  .exec-item b { color: var(--text); }
+  .rules-box { background: #0d1a1a; border: 1px solid var(--teal); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .rule-line { font-size: 13px; font-weight: 600; padding: 4px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div style="margin-bottom: 20px;">
+    <h1>GMAT Verbal — Error Pattern Report</h1>
+    <p class="sub">Pascal 2025 · 204 questions logged (Mock 4A excluded) · 15 patterns · CR + RC</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4">
+    <div class="stat-card"><div class="stat-val">204</div><div class="stat-label">Questions logged</div></div>
+    <div class="stat-card"><div class="stat-val danger">121</div><div class="stat-label">Wrong answers</div></div>
+    <div class="stat-card"><div class="stat-val warning">61</div><div class="stat-label">Slow / warning</div></div>
+    <div class="stat-card"><div class="stat-val danger">6</div><div class="stat-label">High-priority patterns</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Exec Summary -->
+  <div style="margin-bottom: 20px;">
+    <h2>Executive Summary</h2>
+    <div class="grid-3" style="margin-bottom: 16px;">
+      <div class="exec-card">
+        <h3>Top 3 damage areas</h3>
+        <div class="exec-item">1. <b>P-SLOW (40 slow)</b> — Right answer, wrong time. Biggest gap.</div>
+        <div class="exec-item">2. <b>P-SECTION (32 wrong)</b> — Q19–23 collapse every session.</div>
+        <div class="exec-item">3. <b>P-FUZZ (18 wrong)</b> — Choices committed without stable passage map.</div>
+      </div>
+      <div class="exec-card">
+        <h3>Top 3 timing risks</h3>
+        <div class="exec-item">1. Section pacing: Q5→35 min, Q10→25 min, Q15→15 min. No slack.</div>
+        <div class="exec-item">2. 40 slow-corrects cost time without improving score.</div>
+        <div class="exec-item">3. 21 warning corrects — uncontrolled, won't replicate under pressure.</div>
+      </div>
+      <div class="exec-card">
+        <h3>Memorize this week</h3>
+        <div class="exec-item" style="font-style:italic;">"Write Q-type first. EXCEPT = inverted task."</div>
+        <div class="exec-item" style="font-style:italic;">"First pass = heart. Fuzzy → stop → restate."</div>
+        <div class="exec-item" style="font-style:italic;">"Q5: 35 min. Q10: 25 min. Q15: 15 min. Over budget → 90 sec cap."</div>
+      </div>
+    </div>
+
+    <div class="rules-box">
+      <div class="section-title">3 Rules to memorize this week</div>
+      <div class="rule-line">1. Write Q-type before reading choices. EXCEPT = find the one that DOESN'T.</div>
+      <div class="rule-line">2. First pass = heart of passage. Fuzzy? Stop → restate structure → then choices.</div>
+      <div class="rule-line">3. Q5: 35 min. Q10: 25 min. Q15: 15 min. Over budget? Cap next 5 questions at 90 sec.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Patterns -->
+  <div style="margin-bottom: 20px;">
+    <h2>15 Patterns</h2>
+    <div class="filter-row" id="filters">
+      <button class="filter-btn active" data-layer="All" onclick="filterLayer('All')">All</button>
+      <button class="filter-btn" data-layer="Timing" onclick="filterLayer('Timing')">Timing</button>
+      <button class="filter-btn" data-layer="Comprehension" onclick="filterLayer('Comprehension')">Comprehension</button>
+      <button class="filter-btn" data-layer="Scope" onclick="filterLayer('Scope')">Scope</button>
+      <button class="filter-btn" data-layer="Strength calibration" onclick="filterLayer('Strength calibration')">Strength cal.</button>
+      <button class="filter-btn" data-layer="Argument structure" onclick="filterLayer('Argument structure')">Argument</button>
+      <button class="filter-btn" data-layer="Answer reading" onclick="filterLayer('Answer reading')">Answer reading</button>
+      <button class="filter-btn" data-layer="Vocabulary" onclick="filterLayer('Vocabulary')">Vocabulary</button>
+    </div>
+    <div id="pattern-list"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Master NTR -->
+  <div style="margin-bottom: 32px;">
+    <h2>Master NTR List</h2>
+    <div id="ntr-list"></div>
+  </div>
+
+</div>
+
+<script>
+const LAYER_PILL = {
+  "Timing": "pill-amber",
+  "Comprehension": "pill-blue",
+  "Scope": "pill-red",
+  "Strength calibration": "pill-amber",
+  "Argument structure": "pill-neutral",
+  "Answer reading": "pill-neutral",
+  "Vocabulary": "pill-purple",
+};
+const PRI_PILL = { "High": "pill-red", "Medium": "pill-amber", "Low": "pill-neutral" };
+
+const PATTERNS = [
+  {
+    id: "P-SLOW", label: "Slow correct — method too expensive",
+    layer: "Timing", priority: "High", freq: 40, wrong: 0, slow: 40,
+    topics: ["CR", "RC"],
+    tm: "You got the right answer but spent 3–4+ minutes on questions that had faster paths. For CR: you processed every clause before identifying the core argument chain. For RC: you re-read long sections when one targeted re-read was enough. 40 slow-correct questions is a direct deduction from Q16–Q23 time.",
+    ntr: "CR: compress argument to 'because X, therefore Y' before reading choices. RC: locate the exact paragraph or line before choices. At 90 seconds with no confident direction: pick the closest match and move. Checkpoints: Q5: 35 min, Q10: 25 min, Q15: 15 min.",
+    sticky: "90 seconds: if no direction, pick closest and move. Checkpoints are hard limits.",
+    drill: "Re-solve 5 previous slow-corrects with a strict 90-second timer. Debrief the fast path.",
+    reps: [
+      ["3A-1", "CR Strengthen", "Over-read; 3+ min for standard strengthen"],
+      ["3A-6", "CR Strengthen", "Re-read 3x; frequency analysis slow; compress first"],
+      ["4B-1", "CR Evaluate", "Didn't compress argument before reading choices"],
+      ["4B-15", "CR Weaken", "4 min to eliminate 4 wrong choices; should confirm 1"],
+    ]
+  },
+  {
+    id: "P-SECTION", label: "End-of-section timing collapse — Q19–23 systematically lost",
+    layer: "Timing", priority: "High", freq: 32, wrong: 32, slow: 0,
+    topics: ["CR", "RC"],
+    tm: "Q19–23 are systematically timed out — forced guesses under 30 seconds or outright skips. This repeats across Basic A, Mocks 2B, 3A, 3B, 5A, 5B. That is 5–6 forced wrong answers per session. The Verbal checkpoint system (Q5: 35 min, Q10: 25 min, Q15: 15 min) leaves exactly 1.9 min per question for Q16–Q23. Every question over 2 min in Q1–Q15 directly steals from Q19–Q23.",
+    ntr: "Checkpoint system: Q5 done → 35 min remaining. Q10 done → 25 min remaining. Q15 done → 15 min remaining. No Review Later for Verbal. If at any checkpoint you have LESS than the target remaining, shift to 90-second max per question for the next 5 questions to recover. Hard questions Q1–Q15: hard cap at 2 minutes each.",
+    sticky: "Q5: 35 min. Q10: 25 min. Q15: 15 min. Over budget? Cap next 5 questions at 90 sec.",
+    drill: "Full timed section. At Q5, Q10, Q15 — pause and write clock reading on scratchpad. Track gap across sessions.",
+    reps: [
+      ["Basic A Q19–23", "Various", "5 consecutive 'Ran out of time' with zero notes"],
+      ["3A Q19–23", "Various", "5 consecutive 'Ran out of time' with zero notes"],
+      ["3B Q20–23", "Various", "4 consecutive 'Ran out of time'"],
+      ["5A Q21–22", "CR", "0.14 min and 0.07 min — not reading the question at all"],
+      ["5B Q21–23", "CR", "Q21 lucky guess; Q22 lucky guess; Q23 forced wrong in 0.30 min"],
+    ]
+  },
+  {
+    id: "P-GUESS-WARN", label: "Warning correct — guessed right, process was unstable",
+    layer: "Timing", priority: "Medium", freq: 21, wrong: 0, slow: 21,
+    topics: ["CR", "RC"],
+    tm: "21 questions correct but uncontrolled — you were left between two choices and guessed. Some (5A Q21–22) timed at 0.07–0.14 minutes — guessing without reading the question. You counted these as correct. On the real test you cannot replicate an uncontrolled guess. These 21 are functionally unstable answers.",
+    ntr: "After any question where you guessed: write what made you uncertain and what reasoning eliminated the wrong option. Treat warning corrects with the same attention as wrong answers in review. Identify the root cause (vocab, scope, escalation, structure) and log to the correct pattern.",
+    sticky: "Guessed correct ≠ controlled correct. Articulate why the wrong choice was wrong.",
+    drill: "For the next 5 warning corrects: write a one-sentence explanation of why each eliminated choice was wrong.",
+    reps: [
+      ["5A-14", "CR Resolve paradox", "Left with 2; guessed correctly; didn't understand the tax mechanism"],
+      ["5A-16", "CR Weaken", "Vocabulary in correct answer was fuzzy; guessed from elimination"],
+      ["5B-21", "CR", "0.14 min; lucky guess without reading"],
+      ["4A-3", "CR Evaluate", "Low energy session; guessed correctly; no insight retained"],
+    ]
+  },
+  {
+    id: "P-FUZZ", label: "Comprehension collapse — no stable passage map before choices",
+    layer: "Comprehension", priority: "High", freq: 22, wrong: 18, slow: 4,
+    topics: ["RC", "CR"],
+    tm: "You committed to choices before having a stable understanding of the passage's argument. You got stuck on 'ice shelves,' 'sheds,' 'solid streams.' You answered from passage-shape expectations rather than actual content. You kept going when confused instead of pausing. Result: chose an answer consistent with the general topic, not the specific argument.",
+    ntr: "First-pass strategy: extract the heart (main claim, conflict) — not every technical detail. Fuzzy technical noun → assign a label: 'X = the thing they measure about ice' and move on. When passage understanding is shaky: stop before choices, restate structure in 2 sentences on scratchpad, then look at choices. Never commit to a choice you can't anchor to a specific passage line.",
+    sticky: "First pass = heart of passage. Fuzzy? Stop → restate structure → then choices.",
+    drill: "After each practice passage, write a 2-sentence structure summary before looking at any question.",
+    reps: [
+      ["3A-8", "RC Inference", "Vocabulary fuzzy; couldn't connect melting shelves → stream acceleration"],
+      ["1D-6", "RC Method/Boldface", "Answered from passage-shape expectation; not actual content"],
+      ["1D-13", "RC Find conclusion", "Tried to perfectly visualize technical detail; got stuck"],
+      ["5A-6", "RC Inference", "Passage map not stable; 3rd question of set took 2.41 min"],
+      ["5B-4", "RC Method/Boldface", "Para 2 science treated as background noise; missed it was the method basis"],
+    ]
+  },
+  {
+    id: "P-DETAIL", label: "Missed specific passage detail needed for the answer",
+    layer: "Comprehension", priority: "High", freq: 12, wrong: 10, slow: 2,
+    topics: ["RC"],
+    tm: "You got the big picture but missed the specific detail the question required. 'Well underway' = already established before earliest written record (not just 'already exists'). 'Mixture' = same variety, different proportions (not total quantity). You used the general theme to answer a specific line question.",
+    ntr: "For 'according to passage' questions: always hunt for the exact line before evaluating choices. Translate synonyms in choices to match passage language. If a question names a specific time, person, event, or quantity — locate that reference first. When an answer feels uncomfortably close to the passage text — that's usually the correct answer.",
+    sticky: "Stated-fact question? Hunt the exact line. 'Too close to text' is not a reason to eliminate.",
+    drill: "For 5 RC 'according to passage' questions: before choosing, write the exact passage line that supports your answer.",
+    reps: [
+      ["OG-VR2020-44", "RC Inference", "'Well underway' meaning depth missed; picked weaker paraphrase"],
+      ["OG-VR2020-55", "RC Identify assumption", "'Mixture' vs 'relative proportion': missed the distinction"],
+      ["1C-18", "RC Inference", "Distrusted 'most of the Sun's light' (correct); picked 'full range' (overstated)"],
+      ["2C-19", "RC Inference", "Key noun 'cluster constituents' fuzzy; missed causal chain in paragraph 3"],
+      ["5A-18", "RC Inference", "Skipped final analogy as decorative; it carried the supporting evidence"],
+    ]
+  },
+  {
+    id: "P-PARA-FUNC", label: "Misidentified paragraph function in the argument",
+    layer: "Comprehension", priority: "Medium", freq: 8, wrong: 6, slow: 2,
+    topics: ["RC"],
+    tm: "You described what a paragraph discusses topically, not what function it serves in the argument. You assumed the last paragraph was a summary when it was providing the evidence basis for the following research method. You missed attachment cues ('these observations,' 'based on these') showing a paragraph's downstream role.",
+    ntr: "For paragraph-function questions: ask 'What job does this paragraph do for the author's argument?' not 'What topic does it cover?' Look for attachment cues in the following paragraph. Avoid 'consequences' answers unless the paragraph explicitly describes what happened after a conclusion was reached.",
+    sticky: "Paragraph function = its job in the argument. Check what the NEXT paragraph uses it for.",
+    drill: "For 3 RC passages: after reading, label each paragraph as Evidence / Counter / Conclusion / Method-basis before any questions.",
+    reps: [
+      ["5B-4", "RC Method/Boldface", "Para 2 = method basis; treated as random background science"],
+      ["1D-6", "RC Method/Boldface", "Defaulted to 'last paragraph = summary'; was providing coevolution evidence"],
+      ["OG-VR2020-40", "RC Method/Boldface", "Misread Denys's role; didn't check the preceding sentence"],
+      ["GMATNinja-RC4-2.1", "RC Method/Boldface", "Primary focus = local function; treated as passage-level purpose"],
+    ]
+  },
+  {
+    id: "P-SCOPE", label: "Scope drift — answered a different question than asked",
+    layer: "Scope", priority: "High", freq: 18, wrong: 16, slow: 2,
+    topics: ["CR", "RC"],
+    tm: "You answered a different question than the one being asked. You defaulted to 'main purpose' mode on a micro-function question. You solved for argument conclusion when asked for micro-implication of one word. You missed the word EXCEPT entirely. The question stem contains your task — you stopped reading it before fully processing it.",
+    ntr: "Before reading the passage or choices, write the question task on scratchpad: 'Q-type: Weaken' or 'Q-type: Micro-function of phrase X.' For EXCEPT/NOT/LEAST: write the inverted task — 'Find the one that does NOT...' Macro vs micro questions are fundamentally different tasks — never substitute one for the other.",
+    sticky: "Write Q-type before reading choices. EXCEPT = find the one that DOESN'T.",
+    drill: "Classify question type from the stem alone, before touching the passage: Macro / Micro / Inverted / Detail.",
+    reps: [
+      ["4B-11", "CR Method/Boldface", "Answered macro-purpose when asked for micro-function of phrase"],
+      ["GMATNinja-RC1-1", "RC Method/Boldface", "Answered passage's general argument; question was local phrase function"],
+      ["1C-14", "CR Complete", "Missed 'cannot be assumed' negative; answered positive version of task"],
+      ["5A-7", "CR Logical flaw", "Missed EXCEPT; found flaws instead of the non-flaw"],
+    ]
+  },
+  {
+    id: "P-ESCALATE", label: "Strength/modal escalation — upgraded the author's claim",
+    layer: "Strength calibration", priority: "High", freq: 15, wrong: 12, slow: 3,
+    topics: ["CR", "RC"],
+    tm: "You upgraded the author's exact wording beyond what the text supports. 'May' became 'confirmed.' 'More feasible' became 'best.' 'Could reduce' became 'will eliminate.' Hedge words are the exact constraints on what an inference can claim. When you strip them out and pick the stronger-sounding answer, you pick the wrong answer every time.",
+    ntr: "Before reading choices: circle every hedge word — may, could, tends, some, more, often, suggests, appears. Any answer that upgrades these words is automatically eliminated. For conclusion questions: the correct answer restates the claim at the same strength — no stronger, no weaker.",
+    sticky: "Match hedge words exactly. May ≠ will. More feasible ≠ best. Circle hedges before reading choices.",
+    drill: "5 CR/RC questions: circle every hedge word before reading choices. Eliminate escalated answers immediately.",
+    reps: [
+      ["4B-21", "CR Find conclusion", "Author's conclusion was conditional; picked the absolute moral version"],
+      ["GMATNinja-RC4-2.2", "RC Inference", "'May have been no consistent differences' treated as confirmed"],
+      ["5A-18", "RC Inference", "'Feasible solution' → 'necessary solution'"],
+      ["5A-20", "RC Find conclusion", "'More feasible' → 'best solution'"],
+    ]
+  },
+  {
+    id: "P-SHALLOW", label: "Rejected correct answer as 'too boring / too obvious'",
+    layer: "Strength calibration", priority: "Medium", freq: 8, wrong: 7, slow: 1,
+    topics: ["CR", "RC"],
+    tm: "You eliminated the correct answer because it felt too close to the passage, too simple, or 'boring' for a GMAT question. You then built a more complex story to justify a bolder-sounding wrong answer. GMAT deliberately makes the correct answer feel underwhelming. The correct inference answer often directly paraphrases one sentence.",
+    ntr: "When you feel the urge to reject an answer for being 'too obvious': keep it and stress-test it instead. Ask: 'Is this answer factually and logically supported by the passage?' If yes, it survives regardless of how mundane it feels. 'Too close to the text' is not grounds for elimination.",
+    sticky: "Boring ≠ wrong. 'Too close to the text' is not a reason to eliminate.",
+    drill: "3 questions where you previously rejected the correct answer as boring: articulate why it was correct.",
+    reps: [
+      ["4B-21", "CR Find conclusion", "Rejected A as 'too shallow'; A was the correctly-scoped conclusion"],
+      ["5A-9", "RC Inference", "Rejected E because 'some successes in morale' felt too minor — was exactly right"],
+      ["OG-VR2020-102", "RC Find conclusion", "Read policy outcome as recommendation; actual conclusion was descriptive"],
+    ]
+  },
+  {
+    id: "P-CHAIN", label: "Over-built unsupported inference chain (A→B→C→D)",
+    layer: "Argument structure", priority: "High", freq: 10, wrong: 9, slow: 1,
+    topics: ["CR", "RC"],
+    tm: "You built a chain of reasoning the passage didn't support. 'Royalists and Parliamentarians are similar → both anti-feminist → therefore feminists diametrically opposed.' Each step felt plausible, but the chain as a whole was 3 steps beyond the text. GMAT reliably punishes multi-step inferences.",
+    ntr: "Count the logical steps in your inference before choosing. 0 steps = directly stated; 1 step = valid inference; 2+ steps = almost certainly wrong. When building 'A→B→C': write 'link not stated' and move on. For CR: the correct answer almost never requires more than one causal leap. For RC inference: ask 'what is directly entailed by this one sentence?'",
+    sticky: "Count your inference steps. More than 1? Stop. Write 'link not stated.'",
+    drill: "5 RC inference questions: after choosing, count how many steps your reasoning took. If >1, re-examine.",
+    reps: [
+      ["GMATNinja-RC4-2.2", "RC Inference", "3-step chain: Royalists + Parliament similar → both anti-feminist → feminists opposed"],
+      ["OG-VR2020-63", "RC Find conclusion", "Either/or outcome → converted to 'instead of'; passage said both"],
+      ["OG-VR2020-122", "CR Evaluate", "'X affects Y rather than Z' misread as X→Y vs. Z→Y instead of X→Y vs. X→Z"],
+      ["4B-12", "CR Inference", "Built proxy chain assuming decay into another compound; not stated"],
+    ]
+  },
+  {
+    id: "P-ROLE", label: "Misidentified statement role in CR argument",
+    layer: "Argument structure", priority: "Medium", freq: 8, wrong: 6, slow: 2,
+    topics: ["CR"],
+    tm: "You called a conclusion an evidence, or a background rule an argument. In boldface questions, you didn't correctly identify whether a statement was evidence, the conclusion, or a premise the argument attacks. You read the text without tagging each sentence's function.",
+    ntr: "For boldface and method-of-reasoning CR questions: before reading choices, tag every sentence. Conclusion = what the author tries to establish (therefore, thus, so). Evidence = facts to support. Background rule = general premise. Counter-premise = fact that weakens. Tag before choosing.",
+    sticky: "Tag each sentence's role before reading choices: Evidence / Conclusion / Background / Counter.",
+    drill: "5 CR boldface questions: map the argument structure before reading choices. Verify each choice against your map.",
+    reps: [
+      ["OG-VR2020-40", "RC Method/Boldface", "Misread Denys as evidence-giver; he was a source used to interpret evidence"],
+      ["GMATNinja-RC4-2.1", "RC Method/Boldface", "'Qualify' read as strengthen; it means caveat/limit the claim"],
+      ["4B-22", "CR Method/Boldface", "Option correct in tone but not precisely evidence"],
+    ]
+  },
+  {
+    id: "P-CONCEPT-CR", label: "CR business/logic concept gap — exact term matters",
+    layer: "Comprehension", priority: "Medium", freq: 7, wrong: 6, slow: 1,
+    topics: ["CR"],
+    tm: "The question was testing a specific business concept you didn't recognize: efficiency ≠ revenue increase; low-cost electricity ≠ high energy-conversion efficiency (cost = price; efficiency = what fraction of input becomes output); productivity = ratio not absolute. You answered based on the concept you thought was being tested — not the one it actually was.",
+    ntr: "CR business or economic terms: pause and define before touching choices. Efficiency = output per unit of input. Productivity = output per unit of resource. Profit = revenue − cost. Cost ↓ does not guarantee profit ↑ if revenue also falls. 'Low-cost electricity' = cheap price per kilowatt, not high conversion efficiency.",
+    sticky: "CR business term? Define it before touching choices. Efficiency ≠ output. Cost ≠ efficiency.",
+    drill: "3 CR questions involving business terms: write the exact concept definition before reading choices.",
+    reps: [
+      ["OG-VR2020-102", "CR Strengthen", "Efficiency = output/input ratio; missed the distinction"],
+      ["OG-VR2020-106", "CR Strengthen", "Low-cost electricity ≠ high conversion efficiency"],
+      ["OG-VR2020-125", "CR Evaluate", "Fish farming's assumption: farmed fish fed by wild-caught — self-defeating loop"],
+    ]
+  },
+  {
+    id: "P-TRAP-KEYWORD", label: "Trap answer — surface keyword match, wrong logic",
+    layer: "Argument structure", priority: "Medium", freq: 9, wrong: 8, slow: 1,
+    topics: ["CR", "RC"],
+    tm: "You selected an answer because it repeated words from the passage, even though those keywords appeared in the wrong logical role. You confirmed the choice by 'it sounds related' rather than 'it directly addresses the core issue.' Surface word match is not argument match.",
+    ntr: "When an answer choice repeats exact passage vocabulary: treat it as a red flag. Ask: 'Does this choice directly create or remove the causal link being tested, or does it just mention the topic?' For strengthen/weaken: the correct answer must create or close a specific gap in the argument logic.",
+    sticky: "Familiar words ≠ correct logic. Test the causal link, not the vocabulary match.",
+    drill: "3 questions: for each wrong answer you considered, explain why the vocabulary was misleading.",
+    reps: [
+      ["OG-VR2020-125", "CR Evaluate", "Attracted to B for repeating 'fish farming/ocean'; B didn't test the core assumption"],
+      ["OG-VR2020-106", "CR Strengthen", "D repeated 'efficiency' but measured a different ratio"],
+      ["2C-7", "CR Strengthen", "D: right topic, wrong comparison group"],
+      ["4B-14", "CR Complete", "C and D felt 'GMAT-level deep'; A was boring but direct — correct was A"],
+    ]
+  },
+  {
+    id: "P-ANSWER", label: "Stopped reading answer choice before the end",
+    layer: "Answer reading", priority: "Medium", freq: 7, wrong: 6, slow: 1,
+    topics: ["CR", "RC"],
+    tm: "You stopped reading the answer choice before the last 5–7 words — where the key qualifier was. You eliminated a correct answer because the beginning was unimpressive, not because you read it fully. The mechanism that resolved the question was at the end.",
+    ntr: "Read every answer choice all the way to the end before evaluating it. GMAT places the critical qualifier at the END of the choice. When a choice feels weak: have you read to the last word? When stuck between two: re-read only the final 7 words of each.",
+    sticky: "Read every choice to the end. Key words are at the end, not the beginning.",
+    drill: "Next 10 practice questions: after choosing, re-read the last 7 words of your final choice and the eliminated alternative.",
+    reps: [
+      ["4B-2", "CR Resolve paradox", "Missed key causal mechanism in correct answer (back half skim)"],
+      ["4B-14", "CR Complete", "'Otherwise' at end of question stem ignored; changed the task"],
+      ["2C-18", "RC Inference", "Missed 'mistakenly' at the end of choice C"],
+    ]
+  },
+  {
+    id: "P-VOCAB", label: "Vocabulary gap — one unknown word distorted interpretation",
+    layer: "Vocabulary", priority: "High", freq: 15, wrong: 10, slow: 5,
+    topics: ["CR", "RC"],
+    tm: "One unknown word inverted your interpretation or eliminated your correct answer. 'Jettison' unknown → eliminated the correct answer. 'Threshold' misunderstood → reversed the entire sensitivity relationship (high threshold = needs MORE stimulus to trigger, not less). You avoided choices with unfamiliar words.",
+    ntr: "Unknown word in a choice: (1) Don't immediately eliminate it. (2) Infer from context. (3) Substitute your best-guess meaning and test the logic. (4) If two choices survive, prefer the one that more directly explains the passage's stated evidence. Running vocab list: jettison = throw overboard; threshold = trigger level (high threshold = harder to trigger); protracted = prolonged; capricious = unpredictable; sentinel = guard; concession = giving up benefits; inadvisable = not recommended; accrue = accumulate.",
+    sticky: "Unknown word → infer from context → test the logic → never eliminate just because unfamiliar.",
+    drill: "After every session, add all unfamiliar words from TM notes to a running vocab card. Review 10 before each session.",
+    reps: [
+      ["2C-15", "CR Resolve paradox", "'Jettison' unknown → eliminated correct answer; chose weaker option"],
+      ["5B-15", "RC Inference", "'Threshold' misunderstood → reversed REM vs SW sleep sensitivity"],
+      ["4B-23", "CR Strengthen", "'Fined' not registered → missed risk-tradeoff logic"],
+      ["OG-VR2020-147", "CR Resolve paradox", "Drought = kemarau; vocabulary miss led to wrong scenario reading"],
+    ]
+  },
+];
+
+const NTR_DATA = [
+  {
+    cat: "Timing — section pacing",
+    rules: [
+      "Checkpoint system (Verbal, 23 questions): Q5 done → 35 min left. Q10 done → 25 min left. Q15 done → 15 min left.",
+      "No 'Review Later' technique for Verbal.",
+      "At any checkpoint if remaining time < target: cap next 5 questions at 90 sec max to recover.",
+      "Q15 with 15 min left = exactly 1.9 min per question for Q16–Q23. Zero slack.",
+      "Hard questions Q1–Q15: hard cap at 2 minutes each. No exceptions.",
+    ]
+  },
+  {
+    cat: "Timing — question level",
+    rules: [
+      "At 90 seconds: if no confident direction, pick the closest match and move.",
+      "Warning correct (guessed) ≠ controlled correct. Articulate why the eliminated choice was wrong.",
+      "CR: compress argument to 'because X, therefore Y' before reading choices.",
+      "RC: locate the exact paragraph/line before scanning choices — not the whole passage.",
+    ]
+  },
+  {
+    cat: "Passage comprehension",
+    rules: [
+      "First pass = extract the heart (main claim, conflict). Not every technical detail.",
+      "Fuzzy technical noun → assign a label ('X = the thing being measured') and move on.",
+      "If passage understanding is shaky: stop before choices, restate structure in 2 sentences.",
+      "Never commit to a choice you can't anchor to a specific passage line.",
+      "Paragraph-function questions: ask 'what job does this paragraph do?' not 'what does it discuss?'",
+    ]
+  },
+  {
+    cat: "Scope and task control",
+    rules: [
+      "Write Q-type on scratchpad before touching choices: Weaken / Micro-function / EXCEPT / Detail.",
+      "EXCEPT/NOT/LEAST: write the inverted task — 'find the one that does NOT...'",
+      "Macro (primary purpose) vs micro (local phrase function) are different tasks. Never substitute.",
+      "If a question names a specific phrase: the answer is local to that phrase, not the passage theme.",
+    ]
+  },
+  {
+    cat: "Strength and scope calibration",
+    rules: [
+      "Circle hedge words before reading choices: may / could / tends / some / more / often / suggests.",
+      "Any answer that upgrades a hedge word is automatically eliminated.",
+      "May ≠ will. More feasible ≠ best. Some ≠ all. Tends to ≠ always.",
+      "Boring, close-to-text answer → keep it. 'Too close to text' is not grounds for elimination.",
+      "Correct conclusion answer = same strength as author's claim. Not stronger. Not weaker.",
+    ]
+  },
+  {
+    cat: "Argument structure",
+    rules: [
+      "Boldface/method questions: tag each sentence before choices. Evidence / Conclusion / Background / Counter.",
+      "Count inference steps. 0 = stated; 1 = valid; 2+ = almost certainly wrong.",
+      "When building 'A → B → C': write 'link not stated' and stop.",
+      "'X affects Y rather than Z' = X→Y vs. X→Z. NOT X→Y vs. Z→Y.",
+      "CR business term → define it first. Efficiency = output/input. Productivity = output per resource.",
+    ]
+  },
+  {
+    cat: "Answer choice processing",
+    rules: [
+      "Read every choice all the way to the end. Key words are at the END, not the beginning.",
+      "Familiar vocabulary in a wrong choice is a planted trap. Test the causal link, not the word match.",
+      "Unknown word → infer from context → test the logic → never auto-eliminate.",
+      "When stuck between two: re-read only the final 7 words of each and find the more specific link.",
+      "After choosing: confirm the choice directly answers the Q-type you wrote on scratchpad.",
+    ]
+  },
+  {
+    cat: "Vocabulary — running list",
+    rules: [
+      "jettison = throw overboard. threshold = trigger level (high threshold = harder to trigger).",
+      "endowment = built-in natural advantage. exemplify = be a perfect example of.",
+      "protracted = prolonged/lengthy. capricious = unpredictable/arbitrary. sentinel = guard/watch.",
+      "concession = giving up wages/benefits/rules. inadvisable = not recommended. accrue = accumulate.",
+      "After each session: add unfamiliar words to vocab card. Review 10 before each session.",
+    ]
+  },
+];
+
+// Render patterns
+function renderPatterns(layer) {
+  const list = document.getElementById('pattern-list');
+  list.innerHTML = '';
+  PATTERNS.forEach(p => {
+    const show = layer === 'All' || p.layer === layer;
+    const layerPill = LAYER_PILL[p.layer] || 'pill-neutral';
+    const priPill = PRI_PILL[p.priority] || 'pill-neutral';
+    const wrongLabel = p.wrong > 0 ? `<span style="color:#ff4d4d;font-size:12px;font-weight:600;">${p.wrong}✗</span>` : '';
+    const slowLabel = p.slow > 0 ? `<span style="color:#f59e0b;font-size:12px;">⏱${p.slow}</span>` : '';
+    const html = `
+      <div class="pattern-row${show ? '' : ' hidden'}" data-layer="${p.layer}" id="pr-${p.id}">
+        <div class="pattern-header" onclick="togglePattern('${p.id}')">
+          <div class="p-id">${p.id}</div>
+          <div class="p-label">${p.label}</div>
+          <div class="p-counts">
+            ${wrongLabel}${slowLabel}
+            <span class="pill ${priPill}">${p.priority}</span>
+            <span class="pill ${layerPill}">${p.layer}</span>
+          </div>
+        </div>
+        <div class="pattern-detail" id="pd-${p.id}">
+          <div class="tag-row">
+            ${p.topics.map(t=>`<span class="pill pill-neutral">${t}</span>`).join('')}
+          </div>
+          <div class="detail-grid">
+            <div>
+              <div class="section-title">TM — What you missed</div>
+              <p style="font-size:13px;color:#aaa;">${p.tm}</p>
+            </div>
+            <div>
+              <div class="section-title">NTR — What to do next time</div>
+              <p style="font-size:13px;color:#aaa;">${p.ntr}</p>
+            </div>
+          </div>
+          <div class="callout callout-blue">
+            <div class="callout-label">Sticky rule</div>
+            <div class="callout-text sticky">${p.sticky}</div>
+          </div>
+          <div class="callout callout-neutral">
+            <div class="callout-label">Drill</div>
+            <div class="callout-text" style="font-size:13px;color:#aaa;">${p.drill}</div>
+          </div>
+          ${p.reps && p.reps.length > 0 ? `
+          <div class="section-title" style="margin-top:10px;">Representative questions</div>
+          <table class="rep-table">
+            <tr><th>Code</th><th>Subtopic</th><th>What happened</th></tr>
+            ${p.reps.map(r=>`<tr><td>${r[0]}</td><td style="color:#888;">${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+          </table>` : ''}
+        </div>
+      </div>`;
+    list.innerHTML += html;
+  });
+}
+
+function togglePattern(id) {
+  const detail = document.getElementById('pd-' + id);
+  detail.classList.toggle('open');
+}
+
+function filterLayer(layer) {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.layer === layer);
+  });
+  document.querySelectorAll('.pattern-row').forEach(row => {
+    const rowLayer = row.dataset.layer;
+    if (layer === 'All' || rowLayer === layer) {
+      row.classList.remove('hidden');
+    } else {
+      row.classList.add('hidden');
+    }
+  });
+}
+
+// Render NTR
+function renderNTR() {
+  const list = document.getElementById('ntr-list');
+  list.innerHTML = '';
+  NTR_DATA.forEach(cat => {
+    const html = `
+      <div class="card" style="margin-bottom:8px;">
+        <div class="card-header" onclick="toggleCard(this)">${cat.cat} <span style="color:#555;font-size:13px;">▾</span></div>
+        <div class="card-body hidden">
+          ${cat.rules.map((r,i)=>`<div class="ntr-item"><span class="ntr-num">${i+1}.</span><span>${r}</span></div>`).join('')}
+        </div>
+      </div>`;
+    list.innerHTML += html;
+  });
+}
+
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('hidden');
+}
+
+// Init
+renderPatterns('All');
+renderNTR();
+</script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT DI — Error Pattern Report</title>
+<style>
+  :root {
+    --bg: #0f0f0f; --card: #1a1a1a; --border: #2a2a2a; --text: #e0e0e0; --sub: #888;
+    --red: #ff4d4d; --amber: #f59e0b; --blue: #3b82f6; --green: #22c55e; --purple: #a855f7; --teal: #14b8a6;
+    --pill-red: #3a1a1a; --pill-amber: #2d2000; --pill-blue: #0d1a33; --pill-neutral: #222; --pill-teal: #0a1e1e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
+  .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .sub { color: var(--sub); font-size: 12px; margin-bottom: 16px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  @media(max-width:600px){ .grid-4,.grid-3{grid-template-columns:repeat(2,1fr);} .grid-2{grid-template-columns:1fr;} }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .stat-val { font-size: 28px; font-weight: 700; }
+  .stat-val.danger { color: var(--red); }
+  .stat-val.warning { color: var(--amber); }
+  .stat-label { font-size: 11px; color: var(--sub); margin-top: 2px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .card-header { padding: 12px 14px; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+  .card-header:hover { background: #222; }
+  .card-body { padding: 12px 14px; border-top: 1px solid var(--border); }
+  .card-body.hidden { display: none; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+  .pill-red { background: var(--pill-red); color: var(--red); }
+  .pill-amber { background: var(--pill-amber); color: var(--amber); }
+  .pill-blue { background: var(--pill-blue); color: var(--blue); }
+  .pill-neutral { background: var(--pill-neutral); color: var(--sub); }
+  .pill-teal { background: var(--pill-teal); color: var(--teal); }
+  .callout { border-radius: 6px; padding: 10px 12px; margin: 8px 0; }
+  .callout-blue { background: #0d1a33; border-left: 3px solid var(--blue); }
+  .callout-neutral { background: #1e1e1e; border-left: 3px solid #444; }
+  .callout-amber { background: var(--pill-amber); border-left: 3px solid var(--amber); }
+  .callout-label { font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .callout-text { font-size: 13px; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-btn { padding: 4px 10px; border-radius: 14px; font-size: 12px; border: 1px solid var(--border); background: #1a1a1a; color: var(--sub); cursor: pointer; }
+  .filter-btn.active { border-color: var(--blue); background: var(--pill-blue); color: var(--blue); }
+  .pattern-row { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .pattern-row.hidden { display: none; }
+  .pattern-header { padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .pattern-header:hover { background: #222; }
+  .p-id { font-size: 11px; font-weight: 700; color: var(--sub); min-width: 110px; padding-top: 2px; flex-shrink: 0; }
+  .p-label { font-size: 13px; font-weight: 500; flex: 1; }
+  .p-counts { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .pattern-detail { padding: 12px 14px; border-top: 1px solid var(--border); display: none; }
+  .pattern-detail.open { display: block; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  @media(max-width:600px){ .detail-grid{grid-template-columns:1fr;} }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--sub); margin-bottom: 6px; }
+  .ntr-item { padding: 4px 0; font-size: 12px; border-bottom: 1px solid #1e1e1e; display: flex; gap: 8px; }
+  .ntr-num { color: var(--sub); min-width: 18px; flex-shrink: 0; }
+  .exec-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .exec-item { padding: 5px 0; font-size: 13px; border-bottom: 1px solid #1f1f1f; }
+  .exec-item:last-child { border-bottom: none; }
+  .rules-box { background: #0d1a1a; border: 1px solid var(--teal); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .rule-line { font-size: 13px; font-weight: 600; padding: 4px 0; }
+  .rep-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .rep-table th { text-align: left; font-size: 11px; color: var(--sub); padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  .rep-table td { padding: 5px 6px; font-size: 12px; border-bottom: 1px solid #1e1e1e; vertical-align: top; }
+  .rep-table td:first-child { white-space: nowrap; color: var(--sub); }
+  .sticky { font-style: italic; font-weight: 600; font-size: 13px; color: var(--blue); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="margin-bottom:20px;">
+  <h1>GMAT Data Insights — Error Pattern Report</h1>
+  <p class="sub">Pascal 2025 · 311 questions logged · 14 patterns · DS · TPA · MSR · GI · Table</p>
+</div>
+
+<div class="grid-4">
+  <div class="stat-card"><div class="stat-val">311</div><div class="stat-label">Questions logged</div></div>
+  <div class="stat-card"><div class="stat-val danger">201</div><div class="stat-label">Wrong answers</div></div>
+  <div class="stat-card"><div class="stat-val warning">69</div><div class="stat-label">Slow corrects</div></div>
+  <div class="stat-card"><div class="stat-val danger">8</div><div class="stat-label">High-priority patterns</div></div>
+</div>
+
+<hr class="divider">
+
+<div style="margin-bottom:20px;">
+  <h2>Executive Summary</h2>
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="exec-card">
+      <h3>Top 3 damage areas</h3>
+      <div class="exec-item">1. <b>P-SLOW-DI (69 slow)</b> — Biggest single bucket. Wrong tool, wrong time.</div>
+      <div class="exec-item">2. <b>P-SECTION-DI (46 wrong)</b> — Q17–20 collapse every session.</div>
+      <div class="exec-item">3. <b>P-CARELESS (34 wrong)</b> — Slips on perceived-easy questions.</div>
+    </div>
+    <div class="exec-card">
+      <h3>Top 3 timing risks</h3>
+      <div class="exec-item">1. Section pacing: Q5→35 min, Q10→25 min, Q15→15 min. Review Later = 10 min for 3 questions.</div>
+      <div class="exec-item">2. 69 slow-corrects — largest bucket. Correct answers that cost too much time.</div>
+      <div class="exec-item">3. DS over-investment: pushing too hard instead of flagging Review Later.</div>
+    </div>
+    <div class="exec-card">
+      <h3>Memorize this week</h3>
+      <div class="exec-item" style="font-style:italic;">"Read task → pick tool. 90 sec → flag Review Later."</div>
+      <div class="exec-item" style="font-style:italic;">"Q: target, circle, push, then open statements."</div>
+      <div class="exec-item" style="font-style:italic;">"Easy question? Same discipline. Write the step."</div>
+    </div>
+  </div>
+  <div class="rules-box">
+    <div class="section-title">3 Rules to memorize this week</div>
+    <div class="rule-line">1. Read task → pick tool. 90 sec without direction → flag Review Later.</div>
+    <div class="rule-line">2. Write Q: target. Circle it. Push until you can't reduce. Only then open statements.</div>
+    <div class="rule-line">3. Easy question? Same discipline. Write the step. Don't skip.</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div style="margin-bottom:20px;">
+  <h2>14 Patterns</h2>
+  <div class="filter-row" id="filters">
+    <button class="filter-btn active" data-layer="All" onclick="filterLayer('All')">All</button>
+    <button class="filter-btn" data-layer="Timing" onclick="filterLayer('Timing')">Timing</button>
+    <button class="filter-btn" data-layer="Organization" onclick="filterLayer('Organization')">Organization</button>
+    <button class="filter-btn" data-layer="DS execution" onclick="filterLayer('DS execution')">DS execution</button>
+    <button class="filter-btn" data-layer="Math execution" onclick="filterLayer('Math execution')">Math execution</button>
+    <button class="filter-btn" data-layer="Reading precision" onclick="filterLayer('Reading precision')">Reading</button>
+    <button class="filter-btn" data-layer="Comprehension" onclick="filterLayer('Comprehension')">Comprehension</button>
+    <button class="filter-btn" data-layer="Concept gap" onclick="filterLayer('Concept gap')">Concept gap</button>
+    <button class="filter-btn" data-layer="Inference" onclick="filterLayer('Inference')">Inference</button>
+  </div>
+  <div id="pattern-list"></div>
+</div>
+
+<hr class="divider">
+
+<div style="margin-bottom:32px;">
+  <h2>Master NTR List</h2>
+  <div id="ntr-list"></div>
+</div>
+
+</div>
+
+<script>
+const LAYER_PILL = {
+  "Timing": "pill-amber", "Organization": "pill-blue", "DS execution": "pill-red",
+  "Math execution": "pill-amber", "Reading precision": "pill-neutral",
+  "Comprehension": "pill-blue", "Concept gap": "pill-neutral", "Inference": "pill-neutral",
+};
+const PRI_PILL = { "High": "pill-red", "Medium": "pill-amber", "Low": "pill-neutral" };
+
+const PATTERNS = [
+  {
+    id:"P-SLOW-DI", label:"Slow correct — method too expensive (69 events)",
+    layer:"Timing", priority:"High", wrong:0, slow:69,
+    topics:["DS","TPA","MSR","GI","Table"],
+    tm:"69 slow-corrects is the single largest bucket in your DI log. In GMAT Mock 3A, 9 consecutive questions (Q1, Q3, Q6, Q9–Q15) were slow-corrects with zero notes — systematic over-investment. You drew DRT grids before finishing reading (4A Q5), spent time understanding non-essential context (4A Q1), used heavy mixture layouts when a threshold worked (5B Q1), and overprocessed rule sets for simple asks (5A Q20). Every slow-correct on Q1–Q15 directly reduces time for Q16–Q20 and Review Later.",
+    ntr:"Read question task first, then decide setup. Never default to practiced tool before finishing reading. DS: compress to 'what am I being asked?' before drawing. TPA: find lowest-hanging-fruit option first. GI/Table: answer only the specific question asked. 90 seconds without direction → flag Review Later. Checkpoints: Q5→35 min. Q10→25 min. Q15→15 min. Reserve 10 min for 3 Review Later questions.",
+    sticky:"Read task → pick tool. 90 sec without direction → flag Review Later.",
+    drill:"Re-solve 5 previous slow-corrects with 90-second timer. Identify the fast path each time.",
+    reps:[
+      ["GMAT Mock 3A Q1–Q15","DS / GI","9 consecutive slow-corrects with zero notes"],
+      ["4A-1","GI Statistics","Wasted time on 'price index' context that wasn't needed"],
+      ["4A-5","DS Rate","Drew DRT grid before finishing the question; it was simpler"],
+      ["5A-20","TPA Logic","Overprocessed rule set; actual ask was a single conditional"],
+      ["5B-1","DS Statistics","Didn't push weighted average to threshold form"],
+    ]
+  },
+  {
+    id:"P-SECTION-DI", label:"End-of-section Q17–20 collapse — systematically timed out",
+    layer:"Timing", priority:"High", wrong:46, slow:0,
+    topics:["DS","TPA","GI"],
+    tm:"Advance 4.1.2 session: Q12–Q20 all timed out with zero notes. Repeats across GMAT Mock 3A Q17–Q20, 4A Q17–Q20, 4B Q15/Q17–Q20, Basic A Q9–Q20. With the checkpoint system, you have exactly 2 min per question for Q16–Q20 plus 10 min for Review Later. That is already the limit. The data shows you systematically overspend on Q1–Q15.",
+    ntr:"DI checkpoint system: Q5→35 min remaining. Q10→25 min remaining. Q15→15 min remaining. Review Later: 10 min for 3 questions (DI uses this). If at any checkpoint you have LESS than the target: flag the next question as Review Later immediately — do not brute-force it. Q16–Q20: each gets 2 min. No direction in 90 sec → guess and flag.",
+    sticky:"Q5: 35 min. Q10: 25 min. Q15: 15 min. Under target? Flag next Q as Review Later.",
+    drill:"Full timed DI section. At Q5, Q10, Q15: write clock reading. Track gap each session.",
+    reps:[
+      ["Advance 4.1.2 Q12–Q20","Various","9 consecutive 'Ran out of time' — entire section tail lost"],
+      ["GMAT Mock 3A Q17–Q20","DS / TPA","4 consecutive timed-out wrong answers"],
+      ["GMAT Mock 4A Q17–Q20","DS / TPA","4 consecutive timed-out wrong answers"],
+      ["GMAT Mock 4B Q15, Q17–Q20","GI / TPA","5 forced wrong from timing"],
+    ]
+  },
+  {
+    id:"P-PUSH", label:"DS push question not taken far enough",
+    layer:"DS execution", priority:"High", wrong:20, slow:8,
+    topics:["DS","TPA"],
+    tm:"The DS 'push' method transforms the stem into its simplest isolated expression before analyzing statements. You stop one step short. GMATNinja DI9-1: wrote r+w+b=240000 but didn't push to 'w+c=?' OG DIR2025-1: tried pushing with weighted average but didn't separate into fraction components. 5A Q6: false-mastery on a familiar rate setup; 'during this period' vs 'first 30 min' wasn't caught because you assumed control too early.",
+    ntr:"DS push protocol: (1) Read full stem. (2) Write target: 'Q: is X > Y?' — circle it. (3) Push: can target be rewritten with fewer variables? Become a threshold sum? (4) Push stops when you cannot reduce further. Only then look at statements. For TPA: push = identifying the binding constraint first. If after 90 seconds you don't have clear direction → Review Later candidate.",
+    sticky:"Write Q: target. Circle it. Push until you can't reduce. Only then open statements.",
+    drill:"5 DS questions: write the pushed target before touching statements.",
+    reps:[
+      ["GMATNinja-DI9-1","DS General","Stopped at r+w+b=240000; didn't push to w+c=?"],
+      ["GMATNinja-Q12-5","DS Rate","Not pushing DRT grid enough to expose Da1"],
+      ["5A-6","DS Rate","False-mastery; 'during this period' vs 'first 30 min' not caught"],
+      ["5B-1","DS Statistics","Didn't push weighted average into total-sum threshold"],
+      ["OG-DIR2025-1","DS Weighted avg","Didn't push to U_b/Total fraction form"],
+    ]
+  },
+  {
+    id:"P-SUFF", label:"Wrong sufficiency determination — declared S or NS without proof",
+    layer:"DS execution", priority:"High", wrong:22, slow:3,
+    topics:["DS"],
+    tm:"You declared S or NS without fully testing all cases. Patterns: (1) Symmetry fallacy — mean=median assumed to force symmetry; x=8 only, but x=−2 and x=18 also valid (4A Q12). (2) 3 variables + 2 equations auto-NS, but target expression cancelled (3B Q12, 2C Q1). (3) Range ≠ unique value. (4) One-way condition misread as two-way: 'if A off → B off' taken as 'if A on → B on' (5B Q18). (5) False-mastery — declared from pattern recognition, not proof.",
+    ntr:"DS sufficiency rules: never declare S or NS without explicit mini-proof. Yes/No DS: find one Yes case AND one No case. If both exist → NS. Value DS: find two setups giving different target values → NS. Common traps: check if target expression cancels before declaring NS on 3-var + 2-eq. Range + integer → list all valid integers. Conditional → is it one-way only? Mean=median → test all positional cases.",
+    sticky:"Write mini-proof: Yes case + No case before declaring NS. Two cases with same answer → S.",
+    drill:"5 DS questions: write 'Yes case: ___, No case: ___' or 'only one value: ___' before deciding.",
+    reps:[
+      ["4A-12","DS Statistics","Symmetry fallacy; x=−2 and x=18 also valid, not just x=8"],
+      ["3B-12","DS Statistics","Mean known → assumed median fixed; different distributions give different medians"],
+      ["5B-18","DS Overlapping","One-way condition misread as two-way; B-only cell not set to 0"],
+      ["5A-11","DS Percent","Premature confidence; revenue alone doesn't determine cost"],
+      ["OG-DIR2025-700135","DS Inequalities","W > (1/3)X ≠ W > X; multiplier wasn't 1"],
+    ]
+  },
+  {
+    id:"P-ORGANIZE", label:"Scratchpad disorganized — transcription and naming errors",
+    layer:"Organization", priority:"High", wrong:14, slow:4,
+    topics:["DS","TPA","MSR"],
+    tm:"Scratchpad disorganization is a DI-specific error with no Verbal equivalent. You fit complex algebra in cramped space, reuse letters for different variables (P for price AND profit), transcribe incorrectly to calculator, and rescue half-formed work instead of resetting. OG DIR2025-700152: too many names without stable notation caused drift to plausible wrong answer. 4B Q4: cramped space (recurring error). OG DIR2025-700345: scratchpad fuzzy; tried to rescue instead of resetting.",
+    ntr:"DI scratchpad rules: (1) Allocate at least 1/4 of board space per question. (2) Label sections: Q:, S1:, S2:. Keep S1 and S2 separated. (3) Variables: subscripts from the start — never reuse letters. (4) Multi-name: use [object]_[initial] notation. (5) Scratchpad too cramped or messy → restart on clean space immediately. Do not rescue.",
+    sticky:"Messy scratchpad → restart on clean space. Same letter for two things → rename now.",
+    drill:"5 DS questions: draw the layout (Q:, S1:, S2:) before writing any algebra.",
+    reps:[
+      ["OG-DIR2025-700152","MSR Linguistics","Too many names → drifted to plausible wrong instead of maximum mismatch"],
+      ["OG-DIR2025-700345","DS Ratios","Scratchpad fuzzy; tried to rescue half-formed work"],
+      ["4B-4","DS General","Cramped setup → missed valid restriction that determined sufficiency"],
+      ["OG-DIR2025-700406","DS General","Reused P for price and profit → algebra got messy"],
+    ]
+  },
+  {
+    id:"P-CARELESS", label:"Careless math — arithmetic slip under perceived easy conditions",
+    layer:"Math execution", priority:"High", wrong:34, slow:0,
+    topics:["DS","TPA","GI","Table"],
+    tm:"28 careless math + 4 excited mistakes + 2 plain careless = 34 total. Defining pattern: 'perceived low difficulty = autopilot = skip written step = slip.' GMATNinja DI12-7: 'Easy question overconfidence causes loose tracking.' Other slips: calculator decimal transcription (1C Q14); median position errors (4A Q12); unit errors — divided by 7 days instead of 24 hours (OG DIR2025-700194); flipping subtraction direction (OG Moslund).",
+    ntr:"Math rules: (1) 'This looks easy' is the most reliable predictor of a careless error. Write the step anyway. (2) Calculator → verify order of magnitude after every entry. (3) Median → list all ordered values; find physical middle position. (4) Units → write unit label next to every quantity before dividing. (5) Two-step calculations → write both steps, never chain in your head.",
+    sticky:"Easy question? Same discipline. Write the step. Sanity-check order of magnitude.",
+    drill:"5 previous careless-math wrongs: redo with full written steps, no mental shortcuts.",
+    reps:[
+      ["GMATNinja-DI12-7","MSR Statistics","Easy-question overconfidence: 15−3 = 13 instead of 12"],
+      ["OG-DIR2025-700194","TPA Number theory","Correct LCM, then divided by 7 days instead of 24 hours"],
+      ["1C-14","GI Percent","Calculator transcription: thousands to hundreds decimal error"],
+      ["OG-DIR2026-ratings","TPA Statistics","Nine 5s → wrote five 5s; pattern-matched instead of reading"],
+    ]
+  },
+  {
+    id:"P-READ-DI", label:"Misread question stem or key qualifier",
+    layer:"Reading precision", priority:"High", wrong:20, slow:1,
+    topics:["DS","TPA","MSR","GI"],
+    tm:"21 misread entries. Consequential misreads: 'more than 3 books' = >3 (excluding 3), not ≥3 (3B Q11); 'ten-year plan' = project name, not 10-year duration (OG DIR2025-700213); 'Emit more Pollutant Y per hour' = kg/hr rate, not column size (GMATNinja DI8-1); 'each of the charges' = 14 items × $0.50, not total bill (5B Q11); 'only if' ≠ 'if and only if' (OG DIR2025-700271). Pattern: build mental model from one read, then answer from the model.",
+    ntr:"Reading rules: (1) Precise qualifiers — 'only if,' 'more than,' 'at most,' 'each,' 'per foot' → circle before setup. (2) Write 'unit = ___' next to every quantity. (3) 'Only if' = B→A. 'If and only if' = both directions. (4) Physical system passages: sketch variables before calculating. (5) Stuck → re-read the exact text, not your mental model.",
+    sticky:"Circle the qualifier. Circle the unit. Answer from the text, not from your mental model.",
+    drill:"3 previous misread wrongs: identify the exact word that caused the error. Write a one-sentence rule.",
+    reps:[
+      ["3B-11","DS General","'More than 3 books' = >3; treated as ≥3"],
+      ["OG-DIR2025-700213","MSR Logic","'Ten-year plan' = project name; read as 10-year duration"],
+      ["GMATNinja-DI8-1","MSR Statistics","'Emit more per hour' = kg/hr rate; looked at column size"],
+      ["5B-11","DS Math","'Each of the charges' = 14 items × $0.50; misread as total bill"],
+      ["OG-DIR2025-700271","TPA Logic","'Only if' ≠ 'if and only if'"],
+    ]
+  },
+  {
+    id:"P-DETAIL-DI", label:"Missed important detail in question or passage",
+    layer:"Reading precision", priority:"Medium", wrong:13, slow:0,
+    topics:["DS","TPA","MSR","Table"],
+    tm:"Not a misread, but a skip. 'Equally cheap substitute' (Salmon) existed in the table but wasn't checked (1D Q3). 'Possibility is only s-up s-down c-up c-down' treated as common sense, skipped (OG DIR2025-700201). 'Nine ratings of 5' → wrote five 5s — pattern-matched the list instead of reading (OG DIR2026 ratings). 'Were to package all of the orders that include' → read as 'if an employee manages this package' (OG DIR2025-700256).",
+    ntr:"Detail discipline: (1) 'Must be true' → after finding answer, ask: is this forced, or is there an equally good alternative? (2) Repeated list → circle the last item — it almost always breaks the pattern. (3) Table → after finding best item, check for same-price substitutes. (4) Dense rules → read to the last word of every sentence. (5) 'Common sense' details → those are the exact ones most likely to carry critical implications.",
+    sticky:"Must be true → check alternative. Pattern list → circle last item. Table → check for ties.",
+    drill:"3 missed-detail wrongs: find the exact sentence or cell that was skipped. Write what habit would catch it.",
+    reps:[
+      ["1D-3","Table Analysis","Salmon (same price as Fish) was a valid substitute; not checked"],
+      ["OG-DIR2025-700201","TPA Probability","'Only s-up s-down c-up c-down' treated as common sense; skipped"],
+      ["OG-DIR2026-ratings","TPA Statistics","Nine 5s → wrote five 5s; pattern-matched pairs"],
+      ["OG-DIR2025-700256","TPA Logic","'Were to package all orders that include' missed; huge implication"],
+    ]
+  },
+  {
+    id:"P-FUZZ-DI", label:"MSR comprehension collapse — committed before stable mental model",
+    layer:"Comprehension", priority:"High", wrong:14, slow:3,
+    topics:["MSR","TPA"],
+    tm:"GMAT Mock 2C Q8–Q10 (crowding-out passage): 'induced crowding out' was unfamiliar; study setup stayed fuzzy; table and graph felt like disconnected numbers. 3B Q7: wrong rule anchored early ('higher depth ⇒ higher outflow') — drove all three questions wrong. GMATNinja DI10-4 and DI11-5: lax when DI passage theme felt familiar — added own beliefs to inference. You've already corrected this for Verbal RC. The DI inference standard is identical.",
+    ntr:"MSR protocol: (1) Before any question: write 'The mechanism is: ___ causes ___.' (2) Unfamiliar term → translate immediately. 'Crowding out = government money replacing private money.' (3) Multi-tab → write what each tab tells you in one phrase. (4) DI familiarity is not a reason to be lax. DI inference = RC inference: no beliefs added. (5) Shaky mental model → stop, restate, then answer.",
+    sticky:"Write the mechanism before touching questions. DI inference = RC inference: no beliefs added.",
+    drill:"Next 3 MSR sets: before any question, write 'The mechanism is: ___ causes ___' in one sentence.",
+    reps:[
+      ["GMAT Mock 2C Q8–Q10","MSR Economics","Crowding-out passage; all 3 questions answered from fuzzy model"],
+      ["3B-7","MSR Inflow/Outflow","Wrong rule anchored: 'higher depth → higher outflow'; reversed"],
+      ["3B-8","MSR Inflow/Outflow","Didn't understand inflow = uncontrolled, outflow = controlled"],
+      ["GMATNinja-DI10-4","MSR Inference","Lax on familiar theme; added own belief to inference"],
+    ]
+  },
+  {
+    id:"P-SCOPE-DI", label:"Answered different question than asked",
+    layer:"Reading precision", priority:"Medium", wrong:9, slow:1,
+    topics:["DS","TPA","MSR"],
+    tm:"3B Q6: asked 'helps explain Filipe's motives'; answered 'is it derived from the graph?' 5B Q4: asked 'would be made by Teevisio'; answered 'does it involve Teevisio?' DI has unusual question phrasings that don't match standard CR patterns: 'help to explain,' 'made by,' 'explicitly mentioned,' 'corroborate.' OG DIR2025-700233: question was only on second rule; processed all rules before checking which applied.",
+    ntr:"DI task control: (1) Before touching data: paraphrase the ask. 'The question is asking me to ___, not ___.' (2) MSR unusual phrasings: 'help to explain' = direct reason for the stated observation. 'Made by' = who decides. 'Explicitly mentioned' = text-stated only. (3) TPA with complex rules: read ask first, then identify which rules apply. (4) After choosing: does your answer address the stated task?",
+    sticky:"Paraphrase the ask before touching data. DI question types are not CR — don't assume patterns.",
+    drill:"3 scope-miss wrongs: write 'actual task' and 'task I solved' side by side.",
+    reps:[
+      ["3B-6","GI Logic","Asked: helps explain motives? Answered: derived from graph?"],
+      ["5B-4","MSR Logic","Asked: made by Teevisio? Answered: involves Teevisio?"],
+      ["OG-DIR2025-700233","TPA Logic","Only second rule mattered; processed all rules first"],
+      ["1D-7","MSR General","Didn't use 'explicitly mentioned' criterion"],
+    ]
+  },
+  {
+    id:"P-CONCEPT-DI", label:"Concept gap — stats, logic, and probability terms tested precisely",
+    layer:"Concept gap", priority:"Medium", wrong:13, slow:2,
+    topics:["DS","GI","Table"],
+    tm:"'Directly proportional' treated as positive correlation (OG DIR2025-700237) — y=kx (constant ratio) vs 'tends to move together.' Mean=median assumed to force unique positional values — doesn't; test all cases (4A Q12). 'Given A' → denominator = P(A), not total (OG DIR2025-700222). Percentile = percent BELOW not at-or-below (GMATNinja Q16-6). Constant rate = linear change, not % decay; reaching $0 in fixed years confirms linear (OG DIR2026).",
+    ntr:"Key definitions: Directly proportional = y/x is constant. Positive correlation = tends to move together. Percentile = percent BELOW. 'Given A' → denominator = P(A), compute P(B∩A)/P(A). Constant rate = constant dollar change per period (linear). Constant % rate = exponential. Reach $0 in fixed years → strongly linear. Mean=median → does NOT fix positional values; test all cases.",
+    sticky:"Directly proportional ≠ correlated. 'Given A' → denominator = P(A). Constant rate ≠ constant % rate.",
+    drill:"Write each concept definition above in your own words. Test on 3 relevant questions from log.",
+    reps:[
+      ["OG-DIR2025-700237","Table Statistics","Treated directly proportional as correlation; should check y/x = constant"],
+      ["OG-DIR2025-700222","TPA Probability","'Given A' not set up as new denominator; nested sets missed"],
+      ["GMATNinja-Q16-6","DS Statistics","Percentile = percent BELOW; B_all > A_all means B's lowest > A's highest"],
+      ["OG-DIR2026-depreciation","TPA Percent","'Constant rate' = linear; reaches $0 in 8 years = linear confirmed"],
+    ]
+  },
+  {
+    id:"P-CHAIN-DI", label:"Convoluted unsupported inference — built story beyond the data",
+    layer:"Inference", priority:"Medium", wrong:8, slow:2,
+    topics:["MSR","TPA","DS"],
+    tm:"OG DIR2025-700152: treated 'possible migration route + close grammar relationship' as determining direction of origin — data only supports connection. OG DIR2025-700251: 'sell at highest price' → built buy-low/sell-high trading story; correct answer was highest y-value on chart. 5B Q10: 'all children's books have IOR' → 'all IOR books are children's books' — reversed one-way. 5B Q5: multiplied probabilities for conditions already given as true.",
+    ntr:"DI inference rules: (1) Count steps: 0=stated; 1=valid; 2+=reject. (2) 'All A are B' = A→B only, never B→A. (3) Decision-tree: 'given conditions' are already true — never multiply by their probability. (4) 'Highest price' = find highest y-value literally. No trading story. (5) 'Closeness implies origin' is not a valid inference.",
+    sticky:"Count inference steps. 2+ steps → reject. All A → B does NOT mean B → A.",
+    drill:"3 chain-inference wrongs: identify which step was unsupported. Write 'link not stated.'",
+    reps:[
+      ["OG-DIR2025-700152","MSR Linguistics","Language proximity treated as origin-direction proof"],
+      ["OG-DIR2025-700251","GI Statistics","'Sell at highest price' → built trading story; answer was highest y-value"],
+      ["5B-10","DS Logic","'All children's books have IOR' reversed: IOR → children's books"],
+      ["5B-5","MSR Probability","Multiplied probabilities of given conditions; those were already stated"],
+    ]
+  },
+  {
+    id:"P-TPA-LIMIT", label:"TPA: missed constraint-exploitation technique",
+    layer:"DS execution", priority:"Medium", wrong:10, slow:2,
+    topics:["TPA"],
+    tm:"OG DIR2025-700232: 'resisted substitution because TPA should be limitation-only; didn't use divisibility on f+3s=820.' OG DIR2025-700233: 'not playing odd/even on 3y not y — coefficient matters.' OG DIR2025-700184: '^0 normalization not recognized as the key lever.' GMATNinja DI6-1: '>30 days no quant; introduced third variable when 2-variable ratio worked.' Core error: TPA = limitation-only in your mind.",
+    ntr:"TPA constraint toolkit: (1) Odd/even play — check coefficient: '3y' has different parity than 'y.' (2) Divisibility play — if expression = kn, target must be divisible by k. (3) Last-digit play — 6^n ends in 6; ^0 normalizes base to 1. (4) Ceiling/floor — if x ≤ n and integer, test boundaries. (5) TPA is NOT limitation-only. Algebra, substitution, and divisibility all apply. (6) Once slot confirmed → eliminate all other options for that slot.",
+    sticky:"TPA quant: try odd/even then divisibility before algebra. TPA is not limitation-only.",
+    drill:"3 previous TPA quant wrongs: identify the constraint technique that solves it in under 90 sec.",
+    reps:[
+      ["OG-DIR2025-700232","TPA General","f+3s=820; divisibility should have eliminated options quickly"],
+      ["OG-DIR2025-700233","TPA General","Odd/even on 3y not y; coefficient changes parity rules"],
+      ["OG-DIR2025-700184","TPA Properties","^0 normalization not recognized as the key lever"],
+      ["GMATNinja-DI6-1","TPA Percent","Introduced third variable when 2-variable ratio was enough"],
+    ]
+  },
+  {
+    id:"P-GRID", label:"Wrong structural tool — fishbone vs 2x2 grid vs algebra",
+    layer:"Organization", priority:"Medium", wrong:7, slow:2,
+    topics:["DS","TPA"],
+    tm:"1D Q6: used fishbone because nouns seemed complex; was a 2x2 overlap question. OG DIR2025-700297: treated biology and science as unrelated; biology ⊂ science → nested set with impossible cell. OG DIR2025-12: built 2x2 when algebra was enough; wasn't 2 dimensions with 2 segments each. 5B Q9: carried monotonic-sort habit from statements 1–2 into statement 3, which needed group comparison.",
+    ntr:"Tool-selection rules: (1) 2 independent YES/NO dimensions → 2x2 grid. (2) Nested sets (biology ⊂ science) → 2x2 with impossible cell = 0. (3) 1 population split into mutually exclusive categories → fishbone. (4) 0 splits → algebra. (5) For MSR table: sort-and-compare = monotonic; group-A vs group-B = separate tool — decide per statement. Pre-question: 'How many independent binary split variables?'",
+    sticky:"2 YES/NO splits → 2x2. 1 split → fishbone. Nested sets → mark impossible cell as 0.",
+    drill:"5 DS questions: state which tool and why before writing anything else.",
+    reps:[
+      ["1D-6","DS Overlapping","Used fishbone because nouns seemed complex; was a 2x2 overlap question"],
+      ["OG-DIR2025-700297","DS Overlapping","Biology and science treated as unrelated; should be nested"],
+      ["OG-DIR2025-12","DS General","Built 2x2 when algebra was simpler"],
+      ["5B-9","Table Analysis","Carried monotonic-sort habit into group-comparison check"],
+    ]
+  },
+];
+
+const NTR_DATA = [
+  { cat:"Timing — section pacing", rules:[
+    "Checkpoint system (DI, 20 questions): Q5 done → 35 min left. Q10 done → 25 min left. Q15 done → 15 min left.",
+    "Review Later: flag 3 questions during section. Use last 10 minutes for them. (DI uses this; Verbal does not.)",
+    "If at any checkpoint remaining time < target: flag next question as Review Later immediately.",
+    "Q16–Q20 budget: each gets exactly 2 min. No direction in 90 sec → guess and flag.",
+    "Forced wrong guaranteed if you arrive at Q16 with under 8 min remaining.",
+  ]},
+  { cat:"Timing — question level", rules:[
+    "Read question task first, then decide setup. Never default to a practiced tool before finishing reading.",
+    "90 seconds without direction → flag Review Later. Do not force the question.",
+    "DS: if no direction in 90 sec → Review Later candidate.",
+    "69 slow-corrects in this log — the largest bucket. Identify the fast path before the exam.",
+  ]},
+  { cat:"DS execution — push protocol", rules:[
+    "Write target explicitly: 'Q: is X > Y?' or 'Q: what is X?' Circle it.",
+    "Push: can the target be rewritten with fewer variables? Can it become a threshold sum?",
+    "Push stops when you cannot reduce further. Only then look at statements.",
+    "Weighted-average DS → push to 'Is total > threshold?' not mixture setup.",
+    "Rate/DRT DS → push to 'what single quantity do I actually need?'",
+  ]},
+  { cat:"DS execution — sufficiency proof", rules:[
+    "Never declare S or NS without explicit mini-proof. Write it.",
+    "Yes/No DS: find one Yes case AND one No case before declaring NS.",
+    "Value DS: find two valid setups giving different target values → NS.",
+    "2 equations + 3 variables: check if target expression cancels before declaring NS.",
+    "Range + integer constraint: list all valid integers — don't assume range = unique value.",
+  ]},
+  { cat:"Organization — scratchpad", rules:[
+    "Allocate at least 1/4 of board space per question. Label: Q:, S1:, S2:.",
+    "Keep S1 and S2 work visually separated — do not mix constraints.",
+    "Variables: use subscripts from the start. Never reuse the same letter for two things.",
+    "Multi-name questions: use [object]_[initial] notation (M_c = Miranda at table C).",
+    "Scratchpad too cramped or messy → restart on clean space immediately. Do not rescue.",
+  ]},
+  { cat:"Math execution", rules:[
+    "'This looks easy' is the most reliable predictor of a careless error. Write the step anyway.",
+    "Calculator → scratchpad: verify order of magnitude after every entry.",
+    "Median: never assume position. List all ordered values, find physical middle.",
+    "Units: write unit label next to every quantity before any division or multiplication.",
+    "Two-step calculations: write both steps. Never chain in your head.",
+  ]},
+  { cat:"Reading precision", rules:[
+    "Precise qualifiers — 'only if,' 'more than,' 'at most,' 'each,' 'per foot' → circle before setup.",
+    "'Only if' = one direction (B→A). 'If and only if' = both directions. Not the same.",
+    "Physical system passages: sketch what each variable represents before calculating.",
+    "When stuck: re-read the exact text. Your mental model is not the question.",
+    "Pattern list with repeated structure: the last item almost always breaks the pattern — circle it.",
+  ]},
+  { cat:"Comprehension — MSR passages", rules:[
+    "Before any question: write 'The mechanism is: ___ causes ___.' in one sentence.",
+    "Unfamiliar term → translate immediately before touching questions.",
+    "Multi-tab data → write what each tab tells you in one phrase after reading.",
+    "DI passage familiarity is not a reason to be lax. DI inference = RC inference: no beliefs added.",
+    "If mental model is shaky: stop, restate the mechanism, then answer.",
+  ]},
+  { cat:"TPA — constraint exploitation", rules:[
+    "TPA is not limitation-only. Algebra, substitution, and divisibility all apply.",
+    "Odd/even play: check the coefficient — '3y' has different parity rules than 'y.'",
+    "Divisibility play: if expression = kn, the answer must be divisible by k.",
+    "Last-digit play: 6^n always ends in 6; ^0 normalizes any large base to 1.",
+    "Once one TPA slot is determined: eliminate all other options for that slot immediately.",
+  ]},
+  { cat:"Structural tool selection", rules:[
+    "2 independent YES/NO dimensions → 2x2 grid. 1 category split → fishbone. 0 splits → algebra.",
+    "Nested sets (biology ⊂ science): use 2x2 but mark impossible cell as 0.",
+    "Table sort-and-compare = monotonic check only. Group-A vs Group-B = separate tool.",
+    "Do not carry the tool from one statement into the next — re-decide per statement.",
+    "Before drawing: 'How many independent binary split variables does this question have?'",
+  ]},
+  { cat:"Concept definitions — DI specific", rules:[
+    "Directly proportional = y/x is constant. Positive correlation = tends to move together (weaker).",
+    "Percentile = percent of population BELOW that value. Not at-or-below.",
+    "'Given A' in conditional probability → denominator = P(A). Compute P(B∩A) / P(A).",
+    "Constant rate = constant dollar change per period (linear). Constant % rate = exponential.",
+    "Mean = median does NOT force unique positional values. Test all cases for unknowns.",
+  ]},
+  { cat:"Inference discipline", rules:[
+    "Count inference steps. 0 = stated. 1 = valid. 2+ = reject.",
+    "'All A are B' means A→B only. B does NOT imply A.",
+    "Decision-tree: 'given conditions' are already true — never multiply by their probability.",
+    "'Help to explain' = direct reason for the observation. Not a chain of consequences.",
+    "'Sell at highest price' = find the highest y-value. Not a buy/sell trading story.",
+  ]},
+];
+
+function renderPatterns(layer) {
+  const list = document.getElementById('pattern-list');
+  list.innerHTML = '';
+  PATTERNS.forEach(p => {
+    const show = layer === 'All' || p.layer === layer;
+    const lp = LAYER_PILL[p.layer] || 'pill-neutral';
+    const pp = PRI_PILL[p.priority] || 'pill-neutral';
+    const wl = p.wrong > 0 ? `<span style="color:#ff4d4d;font-size:12px;font-weight:600;">${p.wrong}✗</span>` : '';
+    const sl = p.slow > 0 ? `<span style="color:#f59e0b;font-size:12px;">⏱${p.slow}</span>` : '';
+    const html = `
+      <div class="pattern-row${show ? '' : ' hidden'}" data-layer="${p.layer}" id="pr-${p.id}">
+        <div class="pattern-header" onclick="togglePattern('${p.id}')">
+          <div class="p-id">${p.id}</div>
+          <div class="p-label">${p.label}</div>
+          <div class="p-counts">${wl}${sl}<span class="pill ${pp}">${p.priority}</span><span class="pill ${lp}">${p.layer}</span></div>
+        </div>
+        <div class="pattern-detail" id="pd-${p.id}">
+          <div class="tag-row">${p.topics.map(t=>`<span class="pill pill-neutral">${t}</span>`).join('')}</div>
+          <div class="detail-grid">
+            <div><div class="section-title">TM — What you missed</div><p style="font-size:13px;color:#aaa;">${p.tm}</p></div>
+            <div><div class="section-title">NTR — What to do next time</div><p style="font-size:13px;color:#aaa;">${p.ntr}</p></div>
+          </div>
+          <div class="callout callout-blue"><div class="callout-label">Sticky rule</div><div class="callout-text sticky">${p.sticky}</div></div>
+          <div class="callout callout-neutral"><div class="callout-label">Drill</div><div class="callout-text" style="font-size:13px;color:#aaa;">${p.drill}</div></div>
+          ${p.reps && p.reps.length > 0 ? `<div class="section-title" style="margin-top:10px;">Representative questions</div>
+          <table class="rep-table"><tr><th>Code</th><th>Format</th><th>What happened</th></tr>
+          ${p.reps.map(r=>`<tr><td>${r[0]}</td><td style="color:#888;">${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>` : ''}
+        </div>
+      </div>`;
+    list.innerHTML += html;
+  });
+}
+
+function togglePattern(id) {
+  document.getElementById('pd-' + id).classList.toggle('open');
+}
+
+function filterLayer(layer) {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.layer === layer);
+  });
+  document.querySelectorAll('.pattern-row').forEach(row => {
+    if (layer === 'All' || row.dataset.layer === layer) row.classList.remove('hidden');
+    else row.classList.add('hidden');
+  });
+}
+
+function renderNTR() {
+  const list = document.getElementById('ntr-list');
+  list.innerHTML = '';
+  NTR_DATA.forEach(cat => {
+    list.innerHTML += `
+      <div class="card" style="margin-bottom:8px;">
+        <div class="card-header" onclick="this.nextElementSibling.classList.toggle('hidden')">${cat.cat} <span style="color:#555;font-size:13px;">▾</span></div>
+        <div class="card-body hidden">${cat.rules.map((r,i)=>`<div class="ntr-item"><span class="ntr-num">${i+1}.</span><span>${r}</span></div>`).join('')}</div>
+      </div>`;
+  });
+}
+
+renderPatterns('All');
+renderNTR();
+</script>
+</body>
+</html>

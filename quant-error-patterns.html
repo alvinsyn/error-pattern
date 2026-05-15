@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT Quant Error Patterns</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #252836;
+    --border: #2d3040;
+    --text: #e2e4ec;
+    --text2: #8b8fa8;
+    --text3: #5a5e75;
+    --accent: #4f7ef8;
+    --danger: #e05252;
+    --warning: #d4883a;
+    --success: #3fb68b;
+    --info: #4aa8d8;
+    --danger-bg: rgba(224,82,82,0.12);
+    --warning-bg: rgba(212,136,58,0.12);
+    --info-bg: rgba(74,168,216,0.12);
+    --success-bg: rgba(63,182,139,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; font-weight: 600; margin: 20px 0 10px; color: var(--text); }
+  h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+  p, li { color: var(--text2); font-size: 0.9rem; }
+  .subtitle { color: var(--text2); font-size: 0.85rem; margin-bottom: 20px; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
+  @media (min-width: 500px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 12px; }
+  .stat-val { font-size: 1.6rem; font-weight: 700; }
+  .stat-label { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+  .stat.danger .stat-val { color: var(--danger); }
+  .stat.warning .stat-val { color: var(--warning); }
+  .stat.info .stat-val { color: var(--info); }
+
+  /* Filter pills */
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  .pill {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; cursor: pointer;
+    border: 1px solid var(--border); background: transparent; color: var(--text2);
+    transition: all 0.15s;
+  }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pill.danger { border-color: var(--danger); color: var(--danger); }
+  .pill.danger.active { background: var(--danger); color: #fff; }
+  .pill.warning { border-color: var(--warning); color: var(--warning); }
+  .pill.warning.active { background: var(--warning); color: #fff; }
+  .pill.info { border-color: var(--info); color: var(--info); }
+  .pill.info.active { background: var(--info); color: #fff; }
+
+  /* Pattern cards */
+  .pattern-list { display: flex; flex-direction: column; gap: 8px; }
+  .pattern-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .pattern-header {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer;
+    user-select: none;
+  }
+  .pattern-header:hover { background: var(--surface2); }
+  .p-id { font-size: 0.75rem; font-weight: 700; color: var(--text3); min-width: 28px; }
+  .p-label { flex: 1; font-size: 0.9rem; font-weight: 500; }
+  .p-badge {
+    font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; border: 1px solid;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .p-badge.danger { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+  .p-badge.warning { border-color: var(--warning); color: var(--warning); background: var(--warning-bg); }
+  .p-badge.info { border-color: var(--info); color: var(--info); background: var(--info-bg); }
+  .p-badge.neutral { border-color: var(--border); color: var(--text2); }
+  .p-wrong { font-size: 0.8rem; font-weight: 700; color: var(--danger); min-width: 40px; text-align: right; }
+  .p-chevron { color: var(--text3); font-size: 0.8rem; transition: transform 0.2s; }
+  .p-chevron.open { transform: rotate(180deg); }
+
+  /* Pattern body */
+  .pattern-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+  .pattern-body.open { display: block; }
+  .p-mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .p-mini-stat { background: var(--surface2); border-radius: 6px; padding: 8px; text-align: center; }
+  .p-mini-val { font-size: 1.2rem; font-weight: 700; }
+  .p-mini-label { font-size: 0.7rem; color: var(--text2); }
+  .p-mini-stat.danger .p-mini-val { color: var(--danger); }
+  .p-mini-stat.warning .p-mini-val { color: var(--warning); }
+  .section-label { font-size: 0.78rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 5px; }
+  .p-note { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+  .callout {
+    border-radius: 6px; padding: 10px 12px; margin: 10px 0;
+    font-size: 0.85rem; border-left: 3px solid;
+  }
+  .callout.info { background: var(--info-bg); border-color: var(--info); color: var(--text); }
+  .callout.neutral { background: var(--surface2); border-color: var(--border); color: var(--text2); }
+  .callout-title { font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .rep-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 0.82rem; }
+  .rep-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .rep-table tr:last-child td { border-bottom: none; }
+  .rep-row-num { color: var(--text3); width: 36px; }
+  .rep-topic { color: var(--info); width: 120px; font-size: 0.78rem; }
+
+  /* Topics table */
+  .topics-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; overflow-x: auto; display: block; }
+  .topics-table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--border); color: var(--text2); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .topics-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .topics-table tr:last-child td { border-bottom: none; }
+  .topics-table tr.high-damage td { background: var(--danger-bg); }
+  .topics-table tr.med-damage td { background: var(--warning-bg); }
+
+  /* NTR list */
+  .ntr-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 600px) { .ntr-grid { grid-template-columns: 1fr 1fr; } }
+  .ntr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .ntr-header { padding: 10px 14px; cursor: pointer; font-size: 0.88rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .ntr-header:hover { background: var(--surface2); }
+  .ntr-body { display: none; padding: 0 14px 12px; }
+  .ntr-body.open { display: block; }
+  .ntr-body ol { padding-left: 18px; }
+  .ntr-body li { color: var(--text2); font-size: 0.83rem; margin: 5px 0; }
+
+  /* Search */
+  .search-wrap { margin: 10px 0; }
+  .search-wrap input {
+    width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 0.88rem;
+  }
+  .search-wrap input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+  .hidden { display: none !important; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .sticky-bar {
+    position: sticky; top: 0; background: var(--bg); padding: 8px 0 12px; z-index: 10;
+    border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<h1>GMAT Quant Error-Log Analysis</h1>
+<p class="subtitle">266 questions · 22 patterns · 15 topics · Pascal 2025</p>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-val">266</div>
+    <div class="stat-label">Questions logged</div>
+  </div>
+  <div class="stat danger">
+    <div class="stat-val">161</div>
+    <div class="stat-label">Wrong answers</div>
+  </div>
+  <div class="stat warning">
+    <div class="stat-val">63</div>
+    <div class="stat-label">Slow corrects</div>
+  </div>
+  <div class="stat danger">
+    <div class="stat-val">14</div>
+    <div class="stat-label">High-priority patterns</div>
+  </div>
+</div>
+
+<hr>
+
+<!-- Exec summary -->
+<h2>This week's 3 rules</h2>
+<div class="callout info" style="margin-bottom:6px;"><span style="font-weight:700">Write every step. No in-head arithmetic after the insight.</span></div>
+<div class="callout info" style="margin-bottom:6px;"><span style="font-weight:700">Read twice. Write Q:___. Verify each copied number.</span></div>
+<div class="callout info"><span style="font-weight:700">2-minute checkpoint: clear structure or educated guess and move.</span></div>
+
+<hr>
+
+<!-- Pattern table -->
+<h2>22 Patterns</h2>
+<div class="sticky-bar">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Search patterns..." oninput="filterPatterns()">
+  </div>
+  <div class="filters" id="layer-filters">
+    <span class="pill active" onclick="setLayer('All',this)">All</span>
+    <span class="pill danger" onclick="setLayer('Execution',this)">Execution</span>
+    <span class="pill danger" onclick="setLayer('Reading',this)">Reading</span>
+    <span class="pill warning" onclick="setLayer('Translation',this)">Translation</span>
+    <span class="pill info" onclick="setLayer('Concept gap',this)">Concept gap</span>
+    <span class="pill" onclick="setLayer('Method selection',this)">Method selection</span>
+    <span class="pill" onclick="setLayer('Discipline',this)">Discipline</span>
+    <span class="pill warning" onclick="setLayer('Timing',this)">Timing</span>
+  </div>
+</div>
+
+<div class="pattern-list" id="pattern-list"></div>
+
+<hr>
+
+<!-- Topics -->
+<h2>Topic Summary</h2>
+<div style="overflow-x:auto;">
+<table class="topics-table">
+  <thead><tr><th>Topic</th><th>Total</th><th>Wrong</th><th>Slow</th><th>Top error</th></tr></thead>
+  <tbody>
+    <tr class="high-damage"><td>General WP</td><td>46</td><td><b>31</b></td><td>8</td><td>Arith slip</td></tr>
+    <tr class="high-damage"><td>Percent WP</td><td>32</td><td><b>21</b></td><td>6</td><td>Concept application</td></tr>
+    <tr class="high-damage"><td>Roots &amp; exponents</td><td>26</td><td><b>18</b></td><td>4</td><td>Concept gap</td></tr>
+    <tr class="med-damage"><td>Statistics</td><td>26</td><td>16</td><td>8</td><td>Timing – slow</td></tr>
+    <tr class="med-damage"><td>Properties of numbers</td><td>20</td><td>14</td><td>2</td><td>Concept application</td></tr>
+    <tr class="med-damage"><td>Inequalities &amp; AV</td><td>17</td><td>13</td><td>3</td><td>Concept application</td></tr>
+    <tr><td>Overlapping sets</td><td>22</td><td>11</td><td>10</td><td>Timing – slow</td></tr>
+    <tr><td>Linear &amp; Quad Eq.</td><td>14</td><td>10</td><td>4</td><td>Concept application</td></tr>
+    <tr><td>Combinations</td><td>9</td><td>8</td><td>1</td><td>Concept application</td></tr>
+    <tr><td>Ratios</td><td>11</td><td>7</td><td>3</td><td>Arith slip</td></tr>
+    <tr><td>Rate problems</td><td>12</td><td>7</td><td>3</td><td>Concept application</td></tr>
+    <tr><td>Functions &amp; Seq.</td><td>9</td><td>6</td><td>2</td><td>Concept application</td></tr>
+    <tr><td>Work problems</td><td>7</td><td>5</td><td>2</td><td>Concept application</td></tr>
+    <tr><td>Probability</td><td>7</td><td>5</td><td>1</td><td>Concept application</td></tr>
+    <tr><td>Unit conversions</td><td>5</td><td>3</td><td>2</td><td>Arith slip</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr>
+
+<!-- Master NTR -->
+<h2>Master NTR List</h2>
+<p style="font-size:0.83rem;color:var(--text2);margin-bottom:12px;">Tap each category to expand. Copy-paste to Anki or Notion.</p>
+<div class="ntr-grid" id="ntr-list"></div>
+
+<hr>
+<p style="font-size:0.8rem;color:var(--text3);text-align:center;">Save this file to iCloud Drive → open in Safari on iPhone</p>
+
+<script>
+const PATTERNS = [
+  {id:"P01",label:"Arithmetic slip on easy calculation",layer:"Execution",priority:"High",freq:50,wrong:50,slow:0,
+   topics:["All 15 topics"],
+   tm:"The setup was correct. The answer was lost on a simple step you didn't bother to write out: 2.5×40 computed as 10 in your head; 0.125 transcribed as 125/100 instead of 125/1000; (1−x)² expanded with the x² term dropped; 54/4.5 wrong because 4.5×2 was computed as 7 not 9. These errors appear across every single topic. The math brain is fine. The pencil brain is undisciplined.",
+   ntr:"Write every arithmetic step on paper — no in-head shortcuts. Transform decimals to integers before multiplying (2.5×40 → 25×4). FOIL: write each of the 4 products on a separate line, combine only after. Decimal-to-fraction: count decimal places (0.125 = 125/1000 — three places).",
+   sticky:"Write every step. No in-head arithmetic after the insight.",
+   drill:"5 untimed arithmetic-heavy questions; grade only for execution accuracy.",
+   reps:[{row:29,topic:"Ratios",note:"54/4.5: computed 4.5×2=7 not 9"},{row:180,topic:"General WP",note:"2.5×(y−40) expanded as 10(y−40)"},{row:90,topic:"Properties",note:"0.125 → 125/100 (one decimal place off)"},{row:191,topic:"Roots & exp",note:"(1−x)²: dropped the x² term in FOIL"}]},
+  {id:"P02",label:"Slow correct — method too expensive",layer:"Timing",priority:"High",freq:63,wrong:0,slow:63,
+   topics:["General WP","Overlapping sets","Statistics","Percent WP","Rate","Ratios"],
+   tm:"You got the answer. But 63 questions are flagged as slow-correct. Under real test conditions, a 3-minute correct and a 1.5-minute guess-and-move score differently. You know the method. What you're missing is the faster entry point — pairwise LCM instead of one-shot, full ART grid instead of one-line insight, brute-force instead of pairing first+last.",
+   ntr:"Before writing the first equation, spend 5 seconds reading the answer choices to lock the target form. At 90s, if the path isn't clean, stop and ask: is there a shortcut? Common shortcuts: pair first+last for sequences (sum = n×(first+last)/2), complement for 'at least one', plug 100 for all-proportional, one-shot LCM for combined rates.",
+   sticky:"No clean path in 90s? Stop. Find the fast lane. Then solve.",
+   drill:"Re-solve 5 previous slow-corrects with a 90-second time target.",
+   reps:[{row:217,topic:"Rate",note:"Pairwise LCM; one-shot LCM 240 available"},{row:219,topic:"Work",note:"Full ART grid; shortcut: pick together-time=2hrs"},{row:152,topic:"Statistics",note:"Expanded sum manually; n×(first+last)/2 immediate"},{row:58,topic:"Functions",note:"Factor method; exploit symmetry: total = avg × count"}]},
+  {id:"P03",label:"Misread / transcription slip",layer:"Reading",priority:"High",freq:20,wrong:19,slow:1,
+   topics:["General WP","Percent WP","Overlapping sets","Rate","Linear & quad eq."],
+   tm:"You copied the wrong value, missed the modifier word, or misread the structure. 'Half hour' read as 'hour'. 'y decreases by 10%' read as 'increases'. 'Next $108M in sales' treated as cumulative total. 'Profit is 10% of cost' translated as profit = 1.1×cost (should be profit = 0.1c). The error happens before any math.",
+   ntr:"Read every question twice before touching the scratchpad — non-negotiable. Write Q: ___? before any equation. After writing each number, glance back at the source to verify. Circle modifier words: next, additional, more than, only, exactly, at least, half, quarterly.",
+   sticky:"Read twice. Write target. Verify each copied number.",
+   drill:"Before each session: 'Read twice → write Q: → verify numbers' as your ritual.",
+   reps:[{row:48,topic:"Linear & quad",note:"Missed 'half hour' — treated as 1 hour"},{row:105,topic:"Percent WP",note:"y 'decreases' 10% read as increases"},{row:162,topic:"Percent WP",note:"'Next $108M' treated as cumulative"},{row:64,topic:"Overlapping sets",note:"R vs R̄; placed 80% in wrong cell"}]},
+  {id:"P04",label:"Didn't use linking relationship to reduce variables",layer:"Translation",priority:"High",freq:12,wrong:10,slow:2,
+   topics:["Ratios","Linear & quad eq.","General WP","Probability"],
+   tm:"The question gave you a relationship that would cut the algebra in half — 'gel pens = 2× ink pens', 'ratio 12:25', 'speed reduction ∝ √n' — and you wrote two independent variables anyway. Then you got stuck with a 2-variable system that was supposed to be 1-variable.",
+   ntr:"Before writing any equation, scan every sentence for a linking relationship. 'A = kB', 'ratio a:b', 'A is twice B' — any of these lets you substitute one variable out immediately. For ratio (given a:b), default to x-method: first = a·x, second = b·x.",
+   sticky:"Scan for the link first. Substitute. One variable.",
+   drill:"3 ratio + word problems; write the linking equation as step 1.",
+   reps:[{row:53,topic:"Linear & quad",note:"g = 2i given; wrote g and p separately"},{row:266,topic:"General WP",note:"Gel = 2×ink; missed the substitution"},{row:223,topic:"Ratios",note:"Ratio 12:25; used r/b instead of 12x/25x"},{row:154,topic:"Ratios",note:"Had valid x-method; abandoned it mid-solve"}]},
+  {id:"P05",label:"Off-by-one in counting / inclusive ranges",layer:"Concept gap",priority:"High",freq:12,wrong:10,slow:2,
+   topics:["Functions & Seq.","Properties","Statistics","Combinations"],
+   tm:"You computed (end − start) / interval and stopped. That counts the gaps, not the terms. You were short by 1 every time. In another variant, you forgot to exclude the boundary value and over-counted by 1.",
+   ntr:"Inclusive count: (last − first) / step + 1. The +1 is not optional. Test with small example: multiples of 3 from 3 to 9 → (9−3)/3 + 1 = 3. ✓ For boundary questions, always ask: does the boundary value itself qualify?",
+   sticky:"Count = (last − first) / step + 1. Always test with a small example.",
+   drill:"5 sequence/counting questions; verify every answer with n=3 before committing.",
+   reps:[{row:58,topic:"Functions",note:"Interval denominator put as 2 instead of 3"},{row:261,topic:"Properties",note:"Used end−start/k without +1"},{row:70,topic:"Combinations",note:"Counted 4000 boundary case — should exclude"}]},
+  {id:"P06",label:"Missed algebraic shortcut",layer:"Method selection",priority:"High",freq:18,wrong:16,slow:2,
+   topics:["Roots & exp","Linear & quad eq.","Statistics","Inequalities & AV"],
+   tm:"You FOILed a (a−b)(a+b) pair that was begging to be difference-of-squares. You expanded a quadratic already in vertex form. You tried algebra on an infinite repeating expression instead of letting x = the whole thing and squaring. Each error cost 2–4 extra minutes on a question with a 30-second path.",
+   ntr:"Before expanding, spend 3 seconds scanning for: (1) difference of squares (a+b)(a−b) = a²−b²; (2) vertex form — C − k(t−h)², max at h; (3) self-similar infinite: let = x, solve; (4) telescoping sum. The shortcut is almost always visible at first glance.",
+   sticky:"3 seconds: scan for diff-of-squares, vertex form, self-similar before expanding.",
+   drill:"5 exponent/roots questions; explicitly name the structure before computing.",
+   reps:[{row:119,topic:"Roots & exp",note:"Infinite √(6+√…); let = x, solve x=√(6+x)"},{row:191,topic:"Roots & exp",note:"(√2−2)(√2+2) = −2; FOILed instead"},{row:206,topic:"Linear & quad",note:"h=150−16(t−3)²; max at t=3; used intercept method"},{row:113,topic:"Roots & exp",note:"Nested radical: let = x, x² = sum; didn't see it"}]},
+  {id:"P07",label:"Disorganized / cramped scratchpad",layer:"Execution",priority:"High",freq:12,wrong:10,slow:2,
+   topics:["Statistics","Percent WP","Overlapping sets","Inequalities & AV"],
+   tm:"You made a mistake not because you didn't know the concept, but because your scratchpad was so cramped you couldn't track what you were doing. You crossed out a number and then couldn't read it. You wrote two threads in the same space and confused them.",
+   ntr:"Write big. One calculation thread per column. Label every variable next to its first use. Leave a verification margin. For min/max ordered-set questions, allocate a full row to the set. Don't save paper — you have plenty.",
+   sticky:"Write big. One thread per column. Label every variable inline.",
+   drill:"Next 5 sessions: fill only the top half of scratch space to force larger writing.",
+   reps:[{row:187,topic:"Statistics",note:"Transcribed $ as % mid-solve; too dense"},{row:84,topic:"Statistics",note:"205−180=25 confounded two different totals"},{row:149,topic:"Statistics",note:"Sloppy counting in 10×10 table"}]},
+  {id:"P08",label:"Exponent / root rule confusion",layer:"Concept gap",priority:"High",freq:15,wrong:14,slow:1,
+   topics:["Roots & exp","Linear & quad eq.","Properties"],
+   tm:"You applied the multiplication rule to addition: (a+b)^4 ≠ a^4+b^4. You tried to combine √a+√b into one root — illegal. You confused (a^m)^n = a^(mn) with a^m·a^n = a^(m+n). Three different rules, used interchangeably under pressure.",
+   ntr:"Keep separate: (1) (a+b)^n → FOIL; (2) (ab)^n = a^n·b^n; (3) √a·√b = √(ab), but √a+√b CANNOT combine; (4) (a^m)^n = a^(mn); (5) a^m·a^n = a^(m+n). Write these 5 from memory before sessions until automatic.",
+   sticky:"Multiply distributes over exponents. Add does not. Separate the 5 rules.",
+   drill:"Write the 5 rules from memory once before each session until automatic.",
+   reps:[{row:108,topic:"Roots & exp",note:"(a+b)^4 treated as a^4+b^4"},{row:112,topic:"Roots & exp",note:"Tried to combine √a+√b under one root"},{row:115,topic:"Roots & exp",note:"Confused (a^m)^n with a^m·a^n"},{row:239,topic:"Roots & exp",note:"Rationalized by squaring instead of ×conjugate"}]},
+  {id:"P09",label:"Absolute value / inequality sign mechanics",layer:"Concept gap",priority:"High",freq:12,wrong:11,slow:1,
+   topics:["Inequalities & AV","Linear & quad eq."],
+   tm:"You split |A| = expr into two cases but forgot to attach the sign condition to each case. You divided by a variable in an inequality without checking its sign. You set |A| = expr without checking expr ≥ 0. You solved x²<400 as x<20, missing x>−20.",
+   ntr:"|A| = RHS: check RHS ≥ 0 first. Case 1: A ≥ 0 → A = RHS. Case 2: A < 0 → −A = RHS. Each candidate tested against its condition. x²<a² → −a < x < a. x²>a² → x<−a or x>a. |x−a| = distance from x to a.",
+   sticky:"|expr| = RHS → RHS≥0 first. Two cases, each with its condition.",
+   drill:"5 abs value + 5 quadratic inequality questions; write case conditions before solving.",
+   reps:[{row:237,topic:"Inequalities",note:"|2x−3|=x−5; didn't check x−5≥0 first"},{row:55,topic:"Inequalities",note:"Divided by variable c without checking sign"},{row:245,topic:"Inequalities",note:"x²<400 → wrote x<20; missed x>−20"}]},
+  {id:"P10",label:"Target not locked before solving",layer:"Discipline",priority:"High",freq:10,wrong:9,slow:1,
+   topics:["General WP","Statistics","Percent WP","Functions","Rate"],
+   tm:"You solved for sum when the question asked for average (÷8 missing). You found both roots when the question asked for their product. You calculated quarterly growth when the question asked annual. In every case, you solved a correct subproblem that wasn't the question.",
+   ntr:"Write 'Q: ___?' before writing any equation. At the end, look back at the Q line and verify your answer directly answers it. For Roman numeral questions: map result to choice letter explicitly — say it out loud: 'the product is −145.'",
+   sticky:"Write Q: ___ first. Answer must match it. Verify before clicking.",
+   drill:"On every practice question: write Q explicitly; check before moving on.",
+   reps:[{row:107,topic:"Statistics",note:"Got sum; forgot to ÷8 for average"},{row:224,topic:"Functions",note:"Found roots −5 and 29; forgot to multiply for product"},{row:35,topic:"Percent WP",note:"Calculated quarterly rate; question asked annual"},{row:104,topic:"General WP",note:"Used = instead of ≥ for 'at least $4.50'"}]},
+  {id:"P11",label:"Plug-in / smart-number not applied",layer:"Method selection",priority:"Medium",freq:8,wrong:7,slow:1,
+   topics:["Percent WP","Ratios","General WP","Rate"],
+   tm:"You did heavy algebra on a question where every quantity was a percent of something — meaning all that mattered was the ratio, and plugging 100 would have eliminated all variables instantly. You also picked 10 as a smart number when fractions 1/2 and 1/3 were given (LCM = 6, not 10).",
+   ntr:"Trigger: all-proportional questions. Action: assign 100 or LCM of given fractions as base immediately. After plugging, compute numerically. Don't use plug-in if there's a fixed non-proportional constraint.",
+   sticky:"All proportional? Plug 100 or LCM. Algebra is optional.",
+   drill:"3 percent-chain questions; solve with algebra first, then plug-in to see the time difference.",
+   reps:[{row:18,topic:"Percent WP",note:"Ratio of price to earnings; plug 100 solves in 30s"},{row:31,topic:"Ratios",note:"Percent change in ratio; plug 100 available"},{row:196,topic:"Percent WP",note:"Fractions 1/2 and 1/3 given; used 10 not LCM 6"}]},
+  {id:"P12",label:"Remainder / divisibility mechanics",layer:"Concept gap",priority:"High",freq:8,wrong:8,slow:0,
+   topics:["Properties of numbers","Roots & exp"],
+   tm:"You didn't know: (1) when divisor > dividend, remainder = dividend itself; (2) for negative dividends, remainder is still nonneg; (3) decimal quotient 64.12 means r:t = 3:25 — remainder can scale, it's not uniquely 3.",
+   ntr:"Remainder formula: n = d·q + r, with 0 ≤ r < d. If n < d: q = 0, r = n. Negative n: r = n − d·⌊n/d⌋ (always nonneg). Decimal quotient n/d = q.f → r/d = f → r and d can scale.",
+   sticky:"r = n − d·⌊n/d⌋. Always ≥ 0. Always < divisor.",
+   drill:"5 remainder questions including 2 with negative dividends; write the formula before each.",
+   reps:[{row:24,topic:"Properties",note:"Divisor > dividend; didn't know r = dividend"},{row:92,topic:"Roots & exp",note:"k⁴=2⁵n; didn't convert to remainder formula"},{row:190,topic:"Properties",note:"−100 divided; used wrong nearby multiple"}]},
+  {id:"P13",label:"3-set overlapping sets formula confusion",layer:"Concept gap",priority:"High",freq:8,wrong:5,slow:3,
+   topics:["Overlapping sets"],
+   tm:"You confused the two 3-set formulas under time pressure. Used 'exactly 2' when the question had 'at least 2'. Forgot the bullseye (center) is still inside pairwise overlaps. F1 and F2 are not interchangeable.",
+   ntr:"F1 (pairwise given): Total = A+B+C − (AB+AC+BC) + bullseye + neither. F2 (exactly-two given): Total = A+B+C − exactly2 − 2×bullseye + neither. Write 'F1' or 'F2' before computing. If AnB = 0, bullseye = 0.",
+   sticky:"F1: subtract pairwise, add bullseye. F2: subtract exactly-2, subtract 2×bullseye.",
+   drill:"1 overlapping-sets question at the start of each session.",
+   reps:[{row:2,topic:"Overlapping sets",note:"Got bullseye C; didn't subtract from 2-unions"},{row:87,topic:"Overlapping sets",note:"Forgot 'exactly 2' formula during mock"},{row:193,topic:"Overlapping sets",note:"Complement logic; formula not ready"},{row:231,topic:"Overlapping sets",note:"Applied F1 when F2 was needed"}]},
+  {id:"P14",label:"Mississippi / factorial rule scope error",layer:"Concept gap",priority:"High",freq:6,wrong:6,slow:0,
+   topics:["Combinations & perm."],
+   tm:"You divided by the wrong factorial. Divided by 4! for 'total 4 selected' when you should have divided by 2!×2! within each same-role group. Or forgot /k! on the second layer of a two-layer problem.",
+   ntr:"Rule: ÷k! only inside each group of identical items in the same role. Different groups/roles → multiply only, no extra division. '1 novel + 3 poems': ÷3! for poems, ÷1! for novel — NOT ÷4! for all. For 'at least one', try complementary first.",
+   sticky:"Same group, same role → ÷k!. Different groups/roles → ×. Never ÷4! across groups.",
+   drill:"3 combination questions; explicitly write which items are 'same role' before dividing.",
+   reps:[{row:66,topic:"Combinations",note:"Divided by /2 not /2! for Mississippi"},{row:69,topic:"Combinations",note:"K,K in gaps: forgot /2! on second layer"},{row:222,topic:"Combinations",note:"Divided by 4! for all; should be 2!×2!"}]},
+  {id:"P15",label:"Percent base / profit-cost-price confusion",layer:"Translation",priority:"High",freq:9,wrong:8,slow:1,
+   topics:["Percent WP","General WP"],
+   tm:"'Profit is 10% of cost' → profit = 0.1×cost, price = 1.1×cost. You wrote profit = 1.1×cost. You confused markup as % of cost with markup as % of selling price — different denominators, used interchangeably.",
+   ntr:"Write 'profit = price − cost' as line 1 of every profit question. 'Profit is k% of cost': profit = (k/100)×cost, price = (1+k/100)×cost. 'Markup is k% of selling price': cost = (1−k/100)×price. Write which formula applies before computing.",
+   sticky:"Profit = price − cost. Write it first. Then assign k% to the right base.",
+   drill:"3 profit/markup questions; write 'profit = price − cost' as line 1.",
+   reps:[{row:94,topic:"Percent WP",note:"Profit=10% of cost; wrote profit=1.1c not 0.1c"},{row:106,topic:"Percent WP",note:"Markup as % of selling price; confused base"},{row:176,topic:"General WP",note:"Simple interest: included principal in interest calc"}]},
+  {id:"P16",label:"Percent wording trap: '200% more' ≠ 200%",layer:"Translation",priority:"Medium",freq:7,wrong:6,slow:1,
+   topics:["Percent WP","General WP"],
+   tm:"'200% more than X' = X + 200%×X = 3X, not 2X. '1/5 taller' = (6/5)×old, not (5/4)×old. You've missed these in 6 separate questions.",
+   ntr:"'X% more than Y' = Y×(1+X/100). 100% more = 2×. 200% more = 3×. '1/n taller/larger' = (1+1/n)×original. Percent change = (new−old)/old × 100. Base is always the original value.",
+   sticky:"'200% more than Y' = 3Y. '1/n taller' = (1+1/n)×old. Base = original.",
+   drill:"Write the translation table from memory. Then do 3 percent-change questions.",
+   reps:[{row:33,topic:"Percent WP",note:"'200% more' computed as 2× instead of 3×"},{row:144,topic:"General WP",note:"'1/5 taller' computed as 5/4×old instead of 6/5×old"},{row:252,topic:"Percent WP",note:"Put old in numerator instead of denominator"}]},
+  {id:"P17",label:"Wrong template forced onto question",layer:"Method selection",priority:"Medium",freq:8,wrong:7,slow:1,
+   topics:["Rate","Work","Percent WP","General WP"],
+   tm:"You activated DRT for a simple linear-formula question. Used alligation when the question was ratio tracking across two mixtures. Applied work-rate to a candle question where the target was height remaining, not work done. Each template was almost right — but wrong enough to cost the answer.",
+   ntr:"Before activating any template (DRT, alligation, work-rate), read the structure: Is this actually rate × time = distance? Or just a linear relationship? Is this combining two concentrations? Or tracking one component across two changes? Templates fit structures, not vocabulary.",
+   sticky:"Read structure before activating a template. Templates are tools, not reflexes.",
+   drill:"3 'template trap' questions; identify structure before anything else.",
+   reps:[{row:126,topic:"General WP",note:"MPG+MPH wording → DRT; it was just linear algebra"},{row:101,topic:"Work",note:"Candle burns: applied work-rate; target was height"},{row:172,topic:"General WP",note:"Alligation used; it was ratio tracking"}]},
+  {id:"P18",label:"Correct answer → wrong answer letter",layer:"Discipline",priority:"Medium",freq:5,wrong:5,slow:0,
+   topics:["General WP","Functions","Properties"],
+   tm:"Row 161: solved correctly to II and III, clicked the wrong Roman numeral choice. Row 224: found roots −5 and 29 but the question asked for product −145 — submitted a root instead. Zero-information losses. You did the work and got nothing.",
+   ntr:"Final answer mapping is a separate micro-step. After solving: (1) write the result; (2) say it out loud — 'the product is (−5)(29) = −145'; (3) find the matching choice; (4) click. Never rush this step.",
+   sticky:"Say the result before clicking. Final mapping is its own step.",
+   drill:"On every question: after solving, cover choices, state answer out loud, then uncover and match.",
+   reps:[{row:161,topic:"General WP",note:"Found II+III; selected wrong Roman numeral choice"},{row:224,topic:"Functions",note:"Found roots −5 and 29; forgot to multiply"},{row:85,topic:"Statistics",note:"Solved range difference; question asked for range itself"}]},
+  {id:"P19",label:"Abandoned working method mid-solve",layer:"Discipline",priority:"Medium",freq:5,wrong:5,slow:0,
+   topics:["Ratios","Linear & quad eq.","Overlapping sets"],
+   tm:"You had a valid, partially-completed setup and abandoned it — not because it was wrong, but because you lost confidence. You switched to a new method from scratch. The new method got stuck too. The original method was the right one.",
+   ntr:"If current setup is valid and you're past halfway, don't switch. Ask: is this logically correct? If yes, push one more step. Only switch on a genuine dead-end. If you must switch, draw a box around the old work so you can return to it.",
+   sticky:"Valid + halfway? Push one more step. Switch only on a genuine dead-end.",
+   drill:"Practice completing 'ugly algebra' problems without switching.",
+   reps:[{row:154,topic:"Ratios",note:"Had valid x-method setup; abandoned due to lost confidence"},{row:52,topic:"Linear & quad",note:"Had digit play; abandoned for algebra; stuck again"}]},
+  {id:"P20",label:"Didn't preview answer choices",layer:"Discipline",priority:"Medium",freq:5,wrong:4,slow:1,
+   topics:["Roots & exp","Percent WP","Rate"],
+   tm:"You solved toward an undefined target and arrived at a form that didn't match any answer choice. If you had glanced at the choices first, you would have seen they wanted 'in terms of a' and aimed for that form from the start.",
+   ntr:"Before writing the first equation, scan choices for 3 seconds. Write 'target form: ___' on scratchpad. For exponent equivalence questions, choices reveal the base and operation you need.",
+   sticky:"Peek at choices first. Write 'target form: ___' on scratchpad.",
+   drill:"For the next 10 questions: before writing anything, write 'target form:' with your read of choices.",
+   reps:[{row:97,topic:"Roots & exp",note:"Solved to wrong form; choices showed 'in terms of a'"},{row:138,topic:"Roots & exp",note:"Didn't lock target; 4 minutes lost mid-transform"}]},
+  {id:"P21",label:"Bailed too late",layer:"Timing",priority:"High",freq:7,wrong:7,slow:0,
+   topics:["General WP","Combinations","Percent WP","Statistics"],
+   tm:"You spent 3–4+ minutes before bailing. At the 3-minute mark, the question had already cost more than it could give back. These 7 questions cost roughly 7–14 minutes that should have been spent on solvable questions.",
+   ntr:"Set a 2-minute decision checkpoint. By 2 minutes: clear structure or write your best educated guess and move. An educated guess (eliminate 2 options) is worth more in expected value than a 4-minute wrong answer.",
+   sticky:"2-minute checkpoint: clear structure or educated guess and move on.",
+   drill:"5 hard questions with strict 2-minute timer; practice triage, not perfection.",
+   reps:[{row:130,topic:"General WP",note:"Coin/combo; 3 min, bailed; greedy algebra was the path"},{row:131,topic:"Percent WP",note:"Percent chain; 3.5 min wrong; plug-in was the path"},{row:184,topic:"General WP",note:"Tank leak; 4+ min; net-rate was the key"}]},
+  {id:"P22",label:"Proportionality / inverse-proportionality translation",layer:"Translation",priority:"Low",freq:4,wrong:4,slow:0,
+   topics:["General WP","Rate"],
+   tm:"'Inversely proportional to the cube of diameter' = y = k/d³. You missed the constant k, and mixed up square (d²) and cube (d³) from the problem wording.",
+   ntr:"Directly ∝ x: y = k·x. Inversely ∝ x: y = k/x. Inversely ∝ x³: y = k/x³. Always include k. Step 1: translate to formula with k. Step 2: find k from given data pair. Step 3: use formula to answer.",
+   sticky:"Inversely ∝ x³ → y = k/x³. Always include k. Find k from data.",
+   drill:"2 proportionality questions; enforce the 3-step process.",
+   reps:[{row:247,topic:"General WP",note:"Inversely ∝ cube; didn't know formula; missed k"},{row:248,topic:"General WP",note:"Speed reduction ∝ √n; wrote n instead of √n"}]},
+];
+
+const NTR_DATA = [
+  {cat:"Reading discipline",rules:["Read every question TWICE before touching the scratchpad.","Write Q: ___? before any equation.","After copying each number, verify against the source line.","Circle precision words: next / additional / exactly / at least / only / distinct / half / quarterly.","'Next $X' = fresh block, not cumulative total."]},
+  {cat:"Variable setup",rules:["Scan every sentence for a linking relationship before writing equations.","Ratio a:b given → x-method: qty1 = a·x, qty2 = b·x.","Define the driver variable first (what single thing drives all changes?).","Two variables only if provably independent."]},
+  {cat:"Percent / profit / base",rules:["profit = price − cost. Write this as line 1.","'Profit is k% of cost' → profit = (k/100)×cost, price = (1+k/100)×cost.","'X% more than Y' = Y×(1+X/100). 100% more = 2×. 200% more = 3×.","'1/n taller' = (1+1/n)×old.","Percent change base = original. Denominator is always the old value."]},
+  {cat:"Overlapping sets",rules:["F1 (pairwise given): Total = A+B+C − (AB+AC+BC) + bullseye + neither.","F2 (exactly-2 given): Total = A+B+C − exactly2 − 2×bullseye + neither.","Write 'F1' or 'F2' before computing.","If AnB = 0, bullseye = 0 automatically.","'Exactly 2' ≠ '2-union'. Identify which before computing."]},
+  {cat:"Exponent / root rules",rules:["(a+b)^n → expand/FOIL. Never a^n+b^n.","(ab)^n = a^n·b^n. (a^m)^n = a^(mn). a^m·a^n = a^(m+n).","√a·√b = √(ab). √a+√b CANNOT be combined.","Rationalize denominator: multiply by conjugate/conjugate.","Infinite repeating expression: let it equal x, solve for x."]},
+  {cat:"Absolute value / inequalities",rules:["|expr| = RHS → check RHS ≥ 0 first.","Two cases, each with sign condition. Verify each candidate.","x²<a² → −a < x < a. x²>a² → x<−a or x>a.","|x−a| = distance from x to a.","Dividing/multiplying by a variable → split positive/negative cases."]},
+  {cat:"Counting / sequences",rules:["Inclusive count: (last − first) / step + 1.","Verify with small example before committing.","Mississippi rule: ÷k! only inside same-role identical groups.","Different groups/roles: multiply only. No extra division.","'At least one': try complementary (total − bad cases) first."]},
+  {cat:"Remainder / divisibility",rules:["n = d·q + r, with 0 ≤ r < d.","Divisor > dividend: q = 0, r = dividend.","Negative dividend: r = n − d·⌊n/d⌋. Always nonneg.","Decimal quotient → remainder scales with divisor. Not unique.","LCM = max prime powers. GCF = min prime powers of shared primes."]},
+  {cat:"Arithmetic execution",rules:["Write every arithmetic step. No in-head shortcuts.","Decimal × integer: convert decimal first (2.5×40 → 25×4).","Decimal to fraction: count places (0.125 = 125/1000).","FOIL: write all 4 terms separately; combine after.","Scratchpad: one thread per column. Label every variable."]},
+  {cat:"Method selection",rules:["All-proportional? Plug 100 or LCM before algebra.","Before expanding: 3s scan for diff-of-squares, vertex form, self-similar.","Read structure before activating DRT / alligation / work-rate template.","Peek at answer choices. Lock target form before solving.","Valid method past halfway? Push one step. Don't switch on anxiety."]},
+  {cat:"Timing / discipline",rules:["2-minute checkpoint: structure or educated guess and move.","90 seconds: no clean path → identify the shortcut.","Say the result before clicking. Final mapping is its own step.","Slow correct costs points under time pressure.","Bail at 2 minutes, not 4. Hard questions don't get clearer with time."]},
+];
+
+let currentLayer = 'All';
+
+const LAYER_TONE = {Execution:'danger',Timing:'warning',Reading:'danger',Translation:'warning','Concept gap':'info','Method selection':'neutral',Discipline:'neutral'};
+const PRI_TONE = {High:'danger',Medium:'warning',Low:'neutral'};
+
+function renderPatterns() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const list = document.getElementById('pattern-list');
+  const visible = PATTERNS.filter(p => {
+    if (currentLayer !== 'All' && p.layer !== currentLayer) return false;
+    if (search && !p.label.toLowerCase().includes(search) && !p.tm.toLowerCase().includes(search) && !p.ntr.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  list.innerHTML = visible.map(p => {
+    const lt = LAYER_TONE[p.layer] || 'neutral';
+    const pt = PRI_TONE[p.priority] || 'neutral';
+    const wrongStr = p.wrong > 0 ? `<span class="p-wrong">${p.wrong}✗</span>` : p.slow > 0 ? `<span style="color:var(--warning);font-size:0.8rem;font-weight:700;min-width:40px;text-align:right">${p.slow}⏱</span>` : '';
+    return `<div class="pattern-card" id="card-${p.id}">
+      <div class="pattern-header" onclick="togglePattern('${p.id}')">
+        <span class="p-id">${p.id}</span>
+        <span class="p-label">${p.label}</span>
+        <span class="p-badge ${lt}">${p.layer}</span>
+        <span class="p-badge ${pt}">${p.priority}</span>
+        ${wrongStr}
+        <span class="p-chevron" id="chev-${p.id}">▼</span>
+      </div>
+      <div class="pattern-body" id="body-${p.id}">
+        <div class="p-mini-stats">
+          <div class="p-mini-stat"><div class="p-mini-val">${p.freq}</div><div class="p-mini-label">Appearances</div></div>
+          <div class="p-mini-stat danger"><div class="p-mini-val">${p.wrong}</div><div class="p-mini-label">Wrong</div></div>
+          <div class="p-mini-stat warning"><div class="p-mini-val">${p.slow}</div><div class="p-mini-label">Slow</div></div>
+        </div>
+        <div class="section-label">TM — What you missed</div>
+        <p class="p-note">${p.tm}</p>
+        <div class="section-label">NTR — What to do next time</div>
+        <p class="p-note">${p.ntr}</p>
+        <div class="callout info"><div class="callout-title">Sticky rule</div>${p.sticky}</div>
+        <div class="callout neutral"><div class="callout-title">Drill</div>${p.drill}</div>
+        <div class="section-label">Representative questions</div>
+        <table class="rep-table">
+          ${p.reps.map(r => `<tr><td class="rep-row-num">${r.row}</td><td class="rep-topic">${r.topic}</td><td>${r.note}</td></tr>`).join('')}
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePattern(id) {
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function setLayer(layer, el) {
+  currentLayer = layer;
+  document.querySelectorAll('#layer-filters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderPatterns();
+}
+
+function filterPatterns() { renderPatterns(); }
+
+function renderNTR() {
+  const list = document.getElementById('ntr-list');
+  list.innerHTML = NTR_DATA.map((cat, i) => `
+    <div class="ntr-card">
+      <div class="ntr-header" onclick="toggleNTR(${i})">
+        <span>${cat.cat}</span>
+        <span id="ntr-chev-${i}" style="color:var(--text3);transition:transform 0.2s">▼</span>
+      </div>
+      <div class="ntr-body" id="ntr-body-${i}">
+        <ol>${cat.rules.map(r => `<li>${r}</li>`).join('')}</ol>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNTR(i) {
+  const body = document.getElementById('ntr-body-' + i);
+  const chev = document.getElementById('ntr-chev-' + i);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+renderPatterns();
+renderNTR();
+</script>
+</body>
+</html>
