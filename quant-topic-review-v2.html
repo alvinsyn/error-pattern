@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT Quant — Topic Review v2</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#252836;--border:#2d3040;--text:#e2e4ec;--text2:#8b8fa8;--text3:#5a5e75;--accent:#4f7ef8;--danger:#e05252;--warning:#d4883a;--success:#3fb68b;--info:#4aa8d8;--danger-bg:rgba(224,82,82,.1);--warning-bg:rgba(212,136,58,.1);--info-bg:rgba(74,168,216,.1);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.55;padding:16px;max-width:960px;margin:0 auto;}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+p,li{color:var(--text2);font-size:0.88rem;}
+.subtitle{color:var(--text2);font-size:0.82rem;margin-bottom:16px;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+@media(min-width:500px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;}
+.stat-val{font-size:1.5rem;font-weight:700;}.stat-label{font-size:0.72rem;color:var(--text2);margin-top:2px;}
+.stat.danger .stat-val{color:var(--danger);}.stat.warning .stat-val{color:var(--warning);}
+.rules{display:flex;flex-direction:column;gap:6px;margin:12px 0;}
+.rule-box{background:var(--info-bg);border-left:3px solid var(--info);border-radius:6px;padding:9px 12px;font-size:0.85rem;font-weight:600;}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.sticky-bar{position:sticky;top:0;background:var(--bg);padding:8px 0 10px;z-index:10;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.search-wrap input{width:100%;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.86rem;}
+.search-wrap input:focus{outline:2px solid var(--accent);}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.pill{padding:3px 12px;border-radius:12px;font-size:0.76rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .15s;}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pill.danger{border-color:var(--danger);color:var(--danger);}
+.pill.danger.active{background:var(--danger);}
+.pill.warning{border-color:var(--warning);color:var(--warning);}
+.pill.warning.active{background:var(--warning);}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;}
+.topic-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;}
+.topic-header:hover{background:var(--surface2);}
+.topic-rank{font-size:0.72rem;font-weight:700;color:var(--text3);min-width:20px;}
+.topic-title{flex:1;font-size:0.9rem;font-weight:600;}
+.badge{font-size:0.7rem;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.badge.danger{border-color:var(--danger);color:var(--danger);background:var(--danger-bg);}
+.badge.warning{border-color:var(--warning);color:var(--warning);background:var(--warning-bg);}
+.badge.neutral{border-color:var(--border);color:var(--text2);}
+.cnt-d{font-size:0.8rem;font-weight:700;color:var(--danger);white-space:nowrap;}
+.cnt-w{font-size:0.8rem;font-weight:700;color:var(--warning);white-space:nowrap;margin-left:6px;}
+.chevron{color:var(--text3);font-size:0.75rem;transition:transform .2s;flex-shrink:0;}
+.chevron.open{transform:rotate(180deg);}
+.topic-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);}
+.topic-body.open{display:block;}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.mini-stat{background:var(--surface2);border-radius:6px;padding:8px;text-align:center;}
+.mini-val{font-size:1.2rem;font-weight:700;}.mini-label{font-size:0.68rem;color:var(--text2);}
+.mini-stat.danger .mini-val{color:var(--danger);}.mini-stat.warning .mini-val{color:var(--warning);}
+.sec-label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;}
+.fail-table,.rep-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:4px;}
+.fail-table th,.rep-table th{text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);color:var(--text3);font-size:0.7rem;text-transform:uppercase;}
+.fail-table td,.rep-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.fail-table tr:last-child td,.rep-table tr:last-child td{border-bottom:none;}
+.fail-cnt{font-weight:700;color:var(--danger);width:36px;}
+.rep-code{color:var(--text3);font-size:0.72rem;white-space:nowrap;}
+.rep-reason{color:var(--warning);font-size:0.75rem;white-space:nowrap;}
+.fail-note{font-size:0.8rem;color:var(--text2);padding:6px 8px;background:var(--danger-bg);border-radius:5px;margin-top:6px;border-left:3px solid var(--danger);}
+.callout{border-radius:6px;padding:9px 12px;margin:8px 0;font-size:0.83rem;border-left:3px solid;}
+.callout.info{background:var(--info-bg);border-color:var(--info);color:var(--text);}
+.callout.neutral{background:var(--surface2);border-color:var(--border);color:var(--text2);}
+.callout-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;opacity:.7;}
+.concept-list{padding-left:18px;}
+.concept-list li{color:var(--text2);font-size:0.83rem;margin:5px 0;line-height:1.5;}
+.concept-list li strong{color:var(--text);}
+.pattern-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.ptag{font-size:0.68rem;padding:2px 7px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);}
+.dmg-table{width:100%;border-collapse:collapse;font-size:0.82rem;overflow-x:auto;display:block;}
+.dmg-table th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);color:var(--text2);font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.dmg-table td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.dmg-table tr:last-child td{border-bottom:none;}
+.dmg-table tr.high td{background:var(--danger-bg);}
+.dmg-table tr.med td{background:var(--warning-bg);}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<h1>GMAT Quant — Topic Review v2</h1>
+<p class="subtitle">266 questions · 15 topics · Pascal 2025 · May 2026</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">266</div><div class="stat-label">Questions logged</div></div>
+  <div class="stat danger"><div class="stat-val">192</div><div class="stat-label">Wrong answers</div></div>
+  <div class="stat warning"><div class="stat-val">23</div><div class="stat-label">Slow corrects</div></div>
+  <div class="stat danger"><div class="stat-val">9</div><div class="stat-label">High-priority topics</div></div>
+</div>
+
+<div class="rules">
+  <div class="rule-box">Write every step. No in-head arithmetic after the insight.</div>
+  <div class="rule-box">Read twice. Write Q: ___. Verify each copied number.</div>
+  <div class="rule-box">2-minute checkpoint: clear structure or educated guess and move.</div>
+</div>
+
+<hr>
+
+<h2 style="margin-bottom:10px;">Topic Damage Table</h2>
+<div style="overflow-x:auto;">
+<table class="dmg-table">
+  <thead><tr><th>#</th><th>Topic</th><th>Total</th><th>Wrong</th><th>Slow</th><th>Top failure mode</th><th>Priority</th></tr></thead>
+  <tbody>
+    <tr class="high"><td>1</td><td>General WP</td><td>46</td><td>40</td><td>6</td><td>Careless math</td><td><b>High</b></td></tr>
+    <tr class="high"><td>2</td><td>Percent WP</td><td>32</td><td>28</td><td>4</td><td>Concept application</td><td><b>High</b></td></tr>
+    <tr class="high"><td>3</td><td>Statistics</td><td>26</td><td>25</td><td>1</td><td>Slow / unorganized</td><td><b>High</b></td></tr>
+    <tr class="high"><td>4</td><td>Roots &amp; exponents</td><td>26</td><td>23</td><td>3</td><td>Concept gap</td><td><b>High</b></td></tr>
+    <tr class="high"><td>5</td><td>Overlapping sets</td><td>22</td><td>19</td><td>3</td><td>Slow correct</td><td><b>High</b></td></tr>
+    <tr class="high"><td>6</td><td>Properties of numbers</td><td>20</td><td>20</td><td>0</td><td>Concept application</td><td><b>High</b></td></tr>
+    <tr class="high"><td>7</td><td>Inequalities &amp; AV</td><td>17</td><td>17</td><td>0</td><td>Concept gap</td><td><b>High</b></td></tr>
+    <tr class="high"><td>8</td><td>Linear &amp; quad eq</td><td>14</td><td>14</td><td>0</td><td>Concept application</td><td><b>High</b></td></tr>
+    <tr class="high"><td>9</td><td>Ratios</td><td>11</td><td>10</td><td>1</td><td>Careless math</td><td><b>High</b></td></tr>
+    <tr class="med"><td>10</td><td>Functions &amp; Sequences</td><td>9</td><td>9</td><td>0</td><td>Concept application</td><td>Medium</td></tr>
+    <tr class="med"><td>11</td><td>Rate problems</td><td>10</td><td>8</td><td>2</td><td>Slow correct</td><td>Medium</td></tr>
+    <tr class="med"><td>12</td><td>Combinations &amp; perm</td><td>9</td><td>9</td><td>0</td><td>Concept application</td><td>Medium</td></tr>
+    <tr class="med"><td>13</td><td>Probability</td><td>9</td><td>8</td><td>1</td><td>Concept application</td><td>Medium</td></tr>
+    <tr class="med"><td>14</td><td>Work problems</td><td>6</td><td>4</td><td>2</td><td>Slow correct</td><td>Medium</td></tr>
+    <tr><td>15</td><td>Unit conversions</td><td>5</td><td>4</td><td>1</td><td>Careless math</td><td>Low</td></tr>
+    <tr><td>—</td><td>Untagged (timed out)</td><td>4</td><td>4</td><td>0</td><td>Ran out of time</td><td>Low</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr>
+
+<h2>Topic Cards</h2>
+<div class="sticky-bar">
+  <div class="search-wrap"><input type="text" id="search" placeholder="Search topics..." oninput="filterCards()"></div>
+  <div class="filters" id="prio-filters">
+    <span class="pill active" onclick="setFilter('All',this)">All</span>
+    <span class="pill danger" onclick="setFilter('High',this)">High priority</span>
+    <span class="pill warning" onclick="setFilter('Medium',this)">Medium</span>
+    <span class="pill" onclick="setFilter('Low',this)">Low</span>
+  </div>
+</div>
+
+<div id="cards-container"></div>
+
+<hr>
+<p style="font-size:0.75rem;color:var(--text3);text-align:center;">v2 Topic Review · Pascal 2025 · May 2026 · See also: quant-error-patterns.html (v1 pattern view)</p>
+
+<script>
+const TOPICS = [
+  {rank:1,id:"gwp",title:"General Word Problems",priority:"High",total:46,wrong:40,slow:6,
+   topReasons:[["Careless math",14],["Slow correct",8],["Concept application",7],["Guessed (unstable)",7]],
+   note:"Careless math (14) is almost twice the next category. The loss happens in the final arithmetic step that wasn't written down. 8 slow-corrects mean correct solutions arriving too late.",
+   primer:[
+     "<strong>Write 'Q: ___?' before any equation.</strong> Lock the target before computing — average vs. sum vs. quantity at time T are all different asks.",
+     "<strong>Scan for a linking relationship before assigning variables.</strong> 'Gel pens = 2× ink pens' or 'ratio 12:25' lets you eliminate one variable immediately. Default to x-method: qty₁ = a·x, qty₂ = b·x.",
+     "<strong>All proportional? Plug 100 or LCM — not algebra.</strong> When every term is k% of something, assign 100 as the base. The GMAT rewards the fast lane over brute force.",
+     "<strong>Write every execution step.</strong> No in-head arithmetic after the insight. '2.5×40 → 25×4' on paper. The setup can be mental; the computation cannot.",
+     "<strong>Templates fit structures, not vocabulary.</strong> DRT and work-rate activate on structure, not surface words like 'miles' or 'hours'. Read before activating any template.",
+     "<strong>90-second shortcut check.</strong> At 90s without a clean path: is there a bound or shortcut? Estimation often eliminates 4 choices before full computation.",
+     "<strong>2-minute decision checkpoint.</strong> Clear structure → keep going. Unclear → educated guess and move. General WP has the highest bail-too-late rate in this log.",
+   ],
+   sticky:"Write Q: ___. Write every step. At 90s, ask 'is there a fast lane?' At 2 min, decide.",
+   drill:"5 General WP questions — before any equation, write 'Q: ___' + 'Link: ___'. Time yourself: clear path within 60 seconds of reading.",
+   reps:[["Advance-2.1.3-5","Careless math","Missing zero — no layout plan, couldn't verify mid-solve"],
+         ["GMAT Mock-1D-7","Template error","Over-activated profit template; question was ratio-only"],
+         ["GMAT Mock-1D-12","Careless math","Right ratio setup; wrong substitution when converting m=c/3"],
+         ["OG-QR2024-18","Careless math","Changed cost per radio; forgot to change quantity from 2000→1000"],
+         ["GMAT Mock-2C-12","Concept application","Grid/trial mode; should have maximized largest denomination first"]],
+   patterns:["P01","P02","P03","P10","P11","P15","P16","P17","P21","P22"]},
+
+  {rank:2,id:"pwp",title:"Percent Word Problems",priority:"High",total:32,wrong:28,slow:4,
+   topReasons:[["Concept application",9],["Careless math",7],["Slow correct",6],["Guessed (unstable)",5]],
+   note:"Concept application failures dominate. Profit/base confusion and '200% more' translation are the most consistent traps.",
+   primer:[
+     "<strong>Write 'profit = price − cost' as line 1 of every profit question.</strong> Then assign k%: 'profit is k% of cost' → profit=(k/100)×cost, price=(1+k/100)×cost.",
+     "<strong>'X% more than Y' = Y×(1+X/100), not Y×(X/100).</strong> 100% more = 2×. 200% more = 3×. '1/n taller' = (1+1/n)×original.",
+     "<strong>Percent change: base is always the original.</strong> Denominator = old value. 'y decreases by 10%' → new y = 0.9×old y — not 1.1×old y.",
+     "<strong>Plug 100 for all-proportional percent questions.</strong> When every quantity is expressed as a % of something else, assign 100 to any unspecified base and compute numerically.",
+     "<strong>Mixture / alligation trigger: two sources combining into one.</strong> Check structure first — if it's tracking one component across two changes (not combining), alligation is wrong.",
+     "<strong>Carry the unit next to every quantity.</strong> 'Dollars per orange' vs 'oranges per dollar' — if units don't cancel cleanly, you have the wrong setup.",
+     "<strong>At 90 seconds without clean path on a percent chain: plug numbers.</strong> Many percent-chain questions collapse to 30-second arithmetic after plugging 100.",
+   ],
+   sticky:"Profit = price − cost. 200% more than Y = 3Y. Write translation first, then compute.",
+   drill:"3 percent WP questions. Write 'profit = price − cost' as literal line 1. Identify which formula (k% of cost vs. selling price) before computing.",
+   reps:[["GMATClub-Non-OG","Concept gap","Dollars/orange confusion — wrong unit in denominator"],
+         ["GMATClub-OG","Concept application","Alligation forgotten after weeks off percent problems"],
+         ["GMATClub-OG","Concept application","Tried to combine EPS and PPS definitions — unrelated denominators"],
+         ["GMATClub-OG","Careless math","'Profit = 10% of cost' → wrote profit = 1.1c instead of 0.1c"]],
+   patterns:["P01","P02","P11","P15","P16","P17"]},
+
+  {rank:3,id:"stat",title:"Statistics",priority:"High",total:26,wrong:25,slow:1,
+   topReasons:[["Slow correct",8],["Concept application",4],["Unorganized work",4],["Concept gap",2]],
+   note:"Highest slow-correct rate per topic (8/26 = 31%). 'Unorganized work' (4 wrongs) is unique to Statistics — a scratchpad discipline problem.",
+   primer:[
+     "<strong>Mean = total sum ÷ count. Write both before computing.</strong> 'sum = ?' and 'count = ?' explicitly. Most stat errors come from conflating partial sums or using the wrong count.",
+     "<strong>Evenly spaced sequences: total = average × count, average = (first+last)/2.</strong> In recurring intervals, average = median. These eliminate the need to sum individual terms.",
+     "<strong>Median: list all ordered values and find the physical middle.</strong> Never assume the median's position from the count alone. Allocate a full scratchpad row for min/max ordered-set questions.",
+     "<strong>Standard deviation measures spread, not center.</strong> Adding the exact mean reduces SD. Adding an outlier increases SD.",
+     "<strong>Weighted average: push to total-sum threshold.</strong> 'Is combined average > 50?' → 'Is total_A + total_B > 50×(n_A+n_B)?' Convert to Yes/No directly.",
+     "<strong>One calculation thread per column in scratchpad.</strong> Multiple sub-totals, partial means, and running sums = exactly where two threads in the same space cause transcription errors.",
+     "<strong>For min/max questions: set up extremes first.</strong> Fix all other values at their minimum, then solve for the middle. Write the full ordered set before computing.",
+   ],
+   sticky:"Write 'sum = ?, count = ?' before any mean computation. One column per thread. Median: list ordered values.",
+   drill:"5 stat questions — draw dedicated layout (sum | count | mean | median) before touching the problem. Mark the question type first.",
+   reps:[["GMATNinja-Q15-2","Concept application","Couldn't translate to algebra; brute-forced inefficiently"],
+         ["GMATNinja-Q15-3","Slow correct","No diagram first; second approach (diagram) was much faster"],
+         ["GMATNinja-Q15-4","Slow correct","Missed that 5th term = x+10 — fewer variables, easier algebra"]],
+   patterns:["P02","P07","P10"]},
+
+  {rank:4,id:"roots",title:"Roots & Exponents",priority:"High",total:26,wrong:23,slow:3,
+   topReasons:[["Concept application",8],["Concept gap",6],["Guessed (unstable)",4],["Slow correct",4]],
+   note:"Concept gap is the second category (6 wrong) — the only topic in this log where 'did not understand concept tested' is this prominent. The 5 rules are confused under pressure.",
+   primer:[
+     "<strong>Keep the 5 rules separate — never merge them:</strong> (a+b)^n → FOIL; (ab)^n = a^n·b^n; (a^m)^n = a^(mn); a^m·a^n = a^(m+n); √a·√b = √(ab) but √a+√b cannot combine.",
+     "<strong>Before expanding: 3-second scan.</strong> Difference of squares (a+b)(a−b) = a²−b²; vertex form C−k(t−h)² max at t=h; self-similar infinite (let=x, solve); telescoping. The shortcut is usually visible at first glance.",
+     "<strong>Rationalize denominators by multiplying by conjugate/conjugate.</strong> Never rationalize by squaring — that introduces extraneous solutions.",
+     "<strong>Infinite repeating radical: let it equal x.</strong> √(6+√(6+…)) → x²=6+x → solve. This is a reasoning pattern, not a memorized formula.",
+     "<strong>√(a²) = |a|, not a.</strong> Square root of a square is always non-negative. Write |a| explicitly when negative bases are involved.",
+     "<strong>Trailing zeros: write plan for numerator and denominator separately.</strong> List prime factorizations side by side — don't count in your head.",
+     "<strong>Remainder + exponent questions: use n = d·q + r first.</strong> Transform k^4 = 2^5·n into remainder form. Unit digit cycles: 2^n (period 4), 6^n (always 6), 5^n (always 5).",
+   ],
+   sticky:"3-second scan before expanding (DoS, vertex, self-similar). Write the 5 rules from memory before sessions.",
+   drill:"5 exponent/roots questions. Before computing, name the structure: 'This is DoS / power-of-power / self-similar.' Then apply the right rule.",
+   reps:[["GMAT Mock-1C-2","Careless math","Double-counted trailing zeros — no separate numerator/denominator plan"],
+         ["GMAT Mock-1C-17","Concept application","8! and 9! factorization — slippery exponent thinking"],
+         ["GMAT Mock-1C-19","Concept gap","Forgot n = d·q + r; didn't see k^4 conversion path"]],
+   patterns:["P06","P08","P12","P20"]},
+
+  {rank:5,id:"overlap",title:"Overlapping Sets",priority:"High",total:22,wrong:19,slow:3,
+   topReasons:[["Slow correct",10],["Concept application",3],["Careless math",3],["Concept gap",2]],
+   note:"Slow-correct rate 45% (10/22) — highest of any topic. Being solved correctly but spending too long. Formula confusion (F1 vs F2) adds concept errors on top.",
+   primer:[
+     "<strong>Label F1 or F2 before writing any equation.</strong> F1 (pairwise given): Total = A+B+C − (AB+AC+BC) + bullseye + neither. F2 (exactly-two given): Total = A+B+C − exactly2 − 2×bullseye + neither.",
+     "<strong>If AnB = 0, bullseye = 0 automatically.</strong> 'If AnB is zero, then AnBnC must be zero too!' Don't draw the Venn — just apply F1 with the center term absent.",
+     "<strong>'Exactly 2' ≠ 'at least 2' ≠ 'pairwise overlap'.</strong> Identify the phrase in the question before writing any formula.",
+     "<strong>2-set questions: use the 2×2 grid.</strong> Rows = A/not-A, columns = B/not-B. Place known quantities first, derive the rest. Faster than the formula under pressure.",
+     "<strong>Slow-correct fix: formula first, not diagram.</strong> Write F1 or F2 → plug values → solve algebraically. Drawing a detailed Venn then re-deriving the formula is the source of the 10 slow-corrects.",
+     "<strong>Percent vs. count: assign total = 100 when only percentages are given.</strong> Don't mix percent and count in the same formula.",
+   ],
+   sticky:"F1 (pairwise) or F2 (exactly-two)? Write the label before anything. AnB=0 → bullseye=0.",
+   drill:"1 overlapping sets question at the start of each session. Time it: target under 2 minutes. Did you write F1/F2 before computing?",
+   reps:[["GMATClub-OG","Concept gap","Got bullseye C but didn't subtract from 2-unions — F1 applied wrong"],
+         ["GMATClub-OG","Concept gap","'Two-union' in problem ≠ AB in formula — wrong formula chosen"],
+         ["GMATClub-OG","Slow correct","Drew Venn — faster: AnB=0 → bullseye=0, skip it"]],
+   patterns:["P02","P13"]},
+
+  {rank:6,id:"prop",title:"Properties of Numbers",priority:"High",total:20,wrong:20,slow:0,
+   topReasons:[["Concept application",6],["Careless math",6],["Guessed (unstable)",3],["Concept gap",2]],
+   note:"100% wrong rate (20/20). Careless math ties with concept application at 6. Both execution errors and concept gaps (remainder rules, prime factorization) punish this topic.",
+   primer:[
+     "<strong>Remainder formula: n = d·q + r, always 0 ≤ r < d.</strong> If n < d: q=0, r=n. Negative n: r = n − d·⌊n/d⌋ (always non-negative). Decimal quotient → remainder scales, not unique.",
+     "<strong>LCM = max prime powers. GCF = min prime powers of shared primes.</strong> LCM × GCF = product of the two numbers.",
+     "<strong>Decimal-to-fraction: count decimal places explicitly.</strong> 0.125 = 125/1000 (three places). Write '___-place decimal → denominator 10^___' before converting.",
+     "<strong>Prime factorization: write separately for each number side by side.</strong> Don't count in your head. List the powers of each prime factor.",
+     "<strong>Divisibility rules:</strong> ÷3 (digit sum div by 3); ÷4 (last two digits); ÷9 (digit sum div by 9); ÷11 (alternating digit sum). Automate these.",
+     "<strong>Unit digit power cycles:</strong> 2^n → 2,4,8,6 (period 4). 3^n → 3,9,7,1. 6^n → always 6. 5^n → always 5.",
+     "<strong>'Careless' here is often a scratchpad problem.</strong> 'x = 4.5/6 → mind froze' is a signal to convert: 45/60 = 9/12 = 3/4. Always convert to integers before dividing.",
+   ],
+   sticky:"r = n − d·⌊n/d⌋. Always ≥ 0. Always < divisor. Write decimal→fraction step count explicitly.",
+   drill:"5 properties questions — write the full prime factorization before every divisibility check. Use the remainder formula for every remainder question.",
+   reps:[["GMATClub-OG","Concept application","Missed which number had remainder applied to it"],
+         ["GMATClub-OG","Careless math","4.5/6 → froze; should convert to 45/60 = 3/4"],
+         ["GMAT Mock-1C-15","Careless math","0.125 → 125/100 (should be 125/1000 — three places)"]],
+   patterns:["P01","P05","P08","P12"]},
+
+  {rank:7,id:"ineq",title:"Inequalities & Absolute Values",priority:"High",total:17,wrong:17,slow:0,
+   topReasons:[["Concept application",6],["Concept gap",6],["Slow correct",3],["Guessed",1]],
+   note:"Concept gap and application tied at 6 each. A small set of rules that collapse under pressure — known in isolation but not executed cleanly in context.",
+   primer:[
+     "<strong>|expr| = RHS: check RHS ≥ 0 first.</strong> If RHS < 0, no solution exists — stop.",
+     "<strong>Two cases, each with its sign condition:</strong> Case 1: expr ≥ 0 → expr = RHS (verify). Case 2: expr < 0 → −expr = RHS (verify). Both verifications are mandatory.",
+     "<strong>x² < a² → −a < x < a (middle). x² > a² → x < −a or x > a (outside).</strong> Draw the number line — always a connected interval or two rays.",
+     "<strong>|x − a| = distance from x to a.</strong> '|x−3| ≤ 5' → −5 ≤ x−3 ≤ 5 → −2 ≤ x ≤ 8. Rewrite distance problems in this form directly.",
+     "<strong>Dividing by a variable in an inequality: split cases.</strong> c > 0 → unchanged. c < 0 → flip. Never divide without determining sign.",
+     "<strong>For graphical inequalities: write the compound inequality from endpoints first.</strong> Then convert to |x − midpoint| ≤ half-width if needed.",
+     "<strong>√(x²) = |x|, not x.</strong> Square root of a square is always non-negative — write |x| explicitly.",
+   ],
+   sticky:"|expr| = RHS → RHS ≥ 0 first. Two cases, each with its condition. Verify each candidate.",
+   drill:"5 AV/inequality questions — write 'RHS ≥ 0?' as line 1 of every absolute value equation. Write both cases with sign conditions before solving either.",
+   reps:[["GMATClub-OG","Concept application","|x−a| = distance — needed distance interpretation directly"],
+         ["GMATClub-OG","Guessed correctly","√(x²) = |x| — didn't recognize AV was needed"],
+         ["GMATClub-OG","Slow correct","m²+p²<100 — min/max of product; fixed-sum approach needed"]],
+   patterns:["P09"]},
+
+  {rank:8,id:"lineq",title:"Linear & Quadratic Equations",priority:"High",total:14,wrong:14,slow:0,
+   topReasons:[["Concept application",5],["Slow correct",4],["Careless math",2],["Concept gap",2]],
+   note:"100% wrong rate. 4 slow-corrects show efficient paths are being missed — questions where adding/subtracting equations directly yields the target expression.",
+   primer:[
+     "<strong>Scan for the target expression before solving.</strong> If the question asks for x+y or x·y, check whether the equation system directly yields it without finding x and y individually.",
+     "<strong>Adding or subtracting equations: check this first.</strong> Symmetric expressions often yield the target in one step.",
+     "<strong>Vertex form C − k(t−h)²: max is at t=h, value = C.</strong> Don't convert to standard form — read off max directly.",
+     "<strong>Before clearing a denominator: copy the original equation to scratchpad first.</strong> Then multiply both sides by the LCD. Having the original on paper prevents double-multiplication errors.",
+     "<strong>Linking relationship → substitute immediately.</strong> 'A = kB' → express everything in terms of one variable before any equation.",
+     "<strong>For root products/sums: Vieta's formulas.</strong> For ax²+bx+c=0, product = c/a, sum = −b/a. Use directly when question asks for a root combination.",
+     "<strong>Complex fractions: multiply both sides by LCD in one step.</strong> Write the LCD, write the resulting integer equation, then solve.",
+   ],
+   sticky:"Scan for target expression first. Adding equations faster than sequential solve. Copy original equation before clearing denominators.",
+   drill:"3 linear + 3 quadratic questions — write 'target = ___' and 'shortcut?' before touching equations. If shortcut (Vieta's, direct expression), execute it first.",
+   reps:[["GMATNinja-Q2-1","Careless math","Multiplied LHS again — original equation not transcribed"],
+         ["GMATNinja-Q2-2","Slow correct","2 variables, 2 equations — tried clever path; direct solve was only option"],
+         ["GMATNinja-Q2-4","Slow correct","Target was x+y; two equations differed by x+y — missed adding directly"]],
+   patterns:["P04","P06","P10","P18"]},
+
+  {rank:9,id:"ratio",title:"Ratios",priority:"High",total:11,wrong:10,slow:1,
+   topReasons:[["Careless math",4],["Slow correct",3],["Concept application",2],["Concept gap",1]],
+   note:"Careless math is the main driver. Ratio questions involve multiple components and arithmetic slips when transferring ratio values into equations.",
+   primer:[
+     "<strong>Default to x-method for every ratio question.</strong> If ratio a:b is given, write qty₁ = a·x, qty₂ = b·x immediately. Don't use raw numbers.",
+     "<strong>For 3-component ratios given as two paired ratios: draw the standardization grid.</strong> Find the common component, scale to a common multiple, build the 3-way ratio.",
+     "<strong>'Ratio doubled' means the fraction doubled, not the distance.</strong> (soap/alcohol)_new = 2×(soap/alcohol)_old. Ratio ≠ distance.",
+     "<strong>Label what x represents before using it.</strong> Transferring unlabeled ratio multipliers is where arithmetic slips enter.",
+     "<strong>Percent change in a ratio: plug in concrete values.</strong> Assign soap = 2, alcohol = 3 → apply change → compute new ratio. Faster than tracking algebraic ratios through percent changes.",
+   ],
+   sticky:"Ratio a:b → qty₁ = a·x, qty₂ = b·x. Always. Label x before using it.",
+   drill:"3 ratio questions using only x-method. Write the labeled x-equation as line 1. Grade yourself on whether you wrote the label.",
+   reps:[["GMATClub-OG","Concept application","'Ratio doubled' interpreted as distance — should be the fraction itself"],
+         ["GMATClub-OG","Careless math","Wrote first ratio correctly; arithmetic slip in substitution"],
+         ["GMATNinja-Q7-2","Slow correct","Two paired ratios — missed grid method; standardize common component"]],
+   patterns:["P01","P02","P04"]},
+
+  {rank:10,id:"func",title:"Functions & Sequences",priority:"Medium",total:9,wrong:9,slow:0,
+   topReasons:[["Concept application",3],["Slow correct",2],["Trap answer",1],["Careless math",1]],
+   note:"",
+   primer:[
+     "<strong>Evenly spaced: total = average × count, average = (first+last)/2.</strong> In recurring intervals, average = median. These eliminate the need to sum individual terms.",
+     "<strong>Inclusive count: (last − first) / step + 1.</strong> The +1 is not optional. Test with a small example before committing.",
+     "<strong>Ceiling/floor functions: 'smallest integer ≥ x' means ⌈x⌉ — a specific number.</strong> Don't let inequality phrasing cause you to treat it as a range.",
+     "<strong>Recursive sequences: write out the first 5 terms.</strong> Most GMAT recursive sequences have cycles of period 4–6. Writing terms reveals the cycle without formula work.",
+     "<strong>Symmetry exploitation.</strong> If the sequence is symmetric around its midpoint, equidistant pairs have equal sums. Total = (count/2) × (pair sum).",
+   ],
+   sticky:"Evenly spaced? total = avg × count. Inclusive? +1. Write 5 terms for recursive.",
+   drill:"3 sequence questions — write 'total = avg × count' as line 1 whenever evenly spaced. Verify with manual count for n=3.",
+   reps:[["GMATNinja-Q6-5","Concept application","Ceiling function — treated as inequality instead of a specific number"],
+         ["GMATNinja-Q11-2","Concept application","Didn't use total = avg × count; missed average = median in recurring interval"],
+         ["GMATNinja-Q11-3","Slow correct","Factoring method instead of symmetry: total = avg × count"]],
+   patterns:["P02","P05","P10"]},
+
+  {rank:11,id:"rate",title:"Rate Problems",priority:"Medium",total:10,wrong:8,slow:2,
+   topReasons:[["Slow correct",6],["Careless math",3],["Concept gap",1]],
+   note:"60% slow-correct rate (6/10) — highest of any topic. Rate problems are being solved correctly but with heavy setups when shortcuts existed.",
+   primer:[
+     "<strong>Read structure before activating DRT.</strong> Rate × Time = Distance/Work only when one thing moves at a constant rate over an interval. 'Linear formula' questions use DRT words but aren't DRT.",
+     "<strong>Combined rates: one-shot LCM shortcut.</strong> If A does job in 4 hrs and B in 6 hrs: combined rate = 1/4+1/6 = 5/12 per hr. Time = 12/5. No separate unit needed.",
+     "<strong>Mixed fraction arithmetic: convert to improper fractions first.</strong> 't + 3/4' → (4t+3)/4. Don't work with mixed numbers mid-calculation.",
+     "<strong>ART grid: label every cell before computing.</strong> 3 columns (A,R,T) × 2 rows + 'together' row. Label units in every cell.",
+     "<strong>At 90 seconds: check if LCM shortcut reduces the problem.</strong> LCM of individual times often gives the together-answer directly.",
+     "<strong>Keep % as fractions throughout.</strong> Convert at the start and stay in that form — don't toggle between % and decimal mid-solve.",
+   ],
+   sticky:"Read structure before DRT. At 90s: LCM shortcut available? Use it.",
+   drill:"5 rate questions — draw ART grid before touching numbers. Label units in every cell. Goal: clean path within 90 seconds.",
+   reps:[["GMATNinja-Q12-6","Careless math","Kept % instead of fraction; dropped /100"],
+         ["GMATNinja-Q13-1","Careless math","Solved t; forgot distance for object x requires t+3/4, not t"],
+         ["GMATNinja-Q13-2","Careless math","Mixed fraction arithmetic — slip on minutes conversion"]],
+   patterns:["P02","P01","P17"]},
+
+  {rank:12,id:"combo",title:"Combinations & Permutations",priority:"Medium",total:9,wrong:9,slow:0,
+   topReasons:[["Concept application",3],["Info not used",2],["Concept gap",2],["Slow correct",1]],
+   note:"100% wrong rate. Two types: factorial scope applied to wrong group, and missing information from the stem.",
+   primer:[
+     "<strong>Same group, same role → ÷k!. Different groups or roles → only multiply.</strong> '1 novel + 3 poems' → ÷3! for poems, ÷1! for novel, multiply results — never ÷4! across the two groups.",
+     "<strong>FCP/slot method: ÷k! applies only inside identical-item slots.</strong> Don't let the overall total trigger a divide.",
+     "<strong>'At least one' → complementary counting.</strong> Total − (none) is almost always faster.",
+     "<strong>Circular permutations: fix one element, arrange the rest.</strong> Circular arrangements of n objects = (n−1)!.",
+     "<strong>Read for special positions before setting up slots.</strong> A genuinely fixed seat fills first; remaining seats are then arranged.",
+     "<strong>'Exactly k' sequences: multiply by C(n,k).</strong> 'Exactly 3 of 5 buy a pie' = C(5,3) × p³ × (1−p)².",
+   ],
+   sticky:"Same role → ÷k!. Different roles → ×. Never ÷ across groups. 'At least one' → complementary.",
+   drill:"3 combination questions — write 'roles: ___' before setting up. Grade yourself on whether you correctly identified the role boundary.",
+   reps:[["GMATNinja-Q18-2","Slow correct","FCP method — ÷2 used (not ÷2!); wrong group identified as same-role"],
+         ["GMATNinja-Q18-3","Misread","Assigned special role to a dessert that was actually free"],
+         ["GMATNinja-Q18-5","Concept application","Computed 5·12·9 correctly; forgot ÷3! for same-role group"]],
+   patterns:["P14","P03"]},
+
+  {rank:13,id:"prob",title:"Probability",priority:"Medium",total:9,wrong:8,slow:1,
+   topReasons:[["Concept application",2],["Careless math",2],["Misread",1],["Concept gap",1]],
+   note:"Errors spread across multiple types. Rushing the reading and missing 'exactly k' arrangement counts are the most consequential.",
+   primer:[
+     "<strong>Frame: favorable / total. Write both before computing.</strong> Label 'favorable = ?' and 'total = ?' explicitly.",
+     "<strong>'At least one' = 1 − P(none).</strong> Almost always faster than summing 'exactly 1' + 'exactly 2' + …",
+     "<strong>'Exactly k' events in a sequence: multiply by C(n,k).</strong> 'Exactly 3 of 5 buy a pie' = C(5,3) × p³ × (1−p)².",
+     "<strong>Independent vs. dependent: does the sample space change between draws?</strong> With replacement → independent. Without replacement → adjust denominator.",
+     "<strong>Read the question twice before computing.</strong> '2 pairs' = 4 items. '4/12' not '1/12' — rushed reading causes single-number miscount.",
+     "<strong>Complementary for complex 'at least one' scenarios.</strong> If P(none) has a simple closed form, use complement.",
+   ],
+   sticky:"Write 'favorable = ? / total = ?' first. 'At least one' → complement. 'Exactly k' → ×C(n,k).",
+   drill:"5 probability questions — label favorable, total, and complement-vs-direct before any arithmetic.",
+   reps:[["GMATNinja-Q17-1","Misread","Rushed → 1/12 instead of 4/12; '2 pairs = 4 items' missed"],
+         ["GMATNinja-Q17-5","Concept gap","Complementary tried but required more calculation; direct was faster"],
+         ["GMATNinja-Q17-6","Concept application","Computed 1 arrangement; event contains 4 arrangements — C(n,k) missing"]],
+   patterns:["P03","P14"]},
+
+  {rank:14,id:"work",title:"Work Problems",priority:"Medium",total:6,wrong:4,slow:2,
+   topReasons:[["Slow correct",3],["Concept application",2],["Info not used",1]],
+   note:"",
+   primer:[
+     "<strong>Work = Rate × Time. Rate = 1/time_for_full_job.</strong> Combined rate = 1/t₁ + 1/t₂. ART grid.",
+     "<strong>Read what 'work' means in this specific problem.</strong> Some questions measure fraction done; some measure quantity remaining (candles, tanks). Read before applying the standard template.",
+     "<strong>Include all agents specified.</strong> '40% new machine at rate A, 60% old at rate B' — compute both contributions.",
+     "<strong>When two quantities both change: track each separately.</strong> Write (i) new value of quantity 1, (ii) new value of quantity 2. Combine only after both are established.",
+     "<strong>At 90 seconds: LCM shortcut for simple combined rate.</strong> LCM of individual times often gives the together-time directly.",
+   ],
+   sticky:"Read what 'work' means. ART grid. Include all agents. Track each quantity change separately.",
+   drill:"3 work problems — write 'work = fraction done OR quantity remaining?' as line 1.",
+   reps:[["GMAT Mock-1D-3","Concept application","Work = amount remaining (not fraction done) — standard template misapplied"],
+         ["GMAT Mock-1D-4","Concept application","Both population AND voter proportion changed — tracked only one"],
+         ["GMATClub-OG","Info not used","Missed 40% new / 60% old machine split"]],
+   patterns:["P02","P17"]},
+
+  {rank:15,id:"unit",title:"Unit Conversions",priority:"Low",total:5,wrong:4,slow:1,
+   topReasons:[["Slow correct",2],["Careless math",1],["Guessed",1]],
+   note:"",
+   primer:[
+     "<strong>Chain conversions as a single unit-cancellation expression.</strong> Write what you have → what you need. Set up the chain so units cancel.",
+     "<strong>1/3 hr = 20 min. 1/4 hr = 15 min.</strong> Know these automatically — don't compute 60÷3 mid-problem.",
+     "<strong>Cancel numerically before multiplying.</strong> '6÷3 = 2, not 3.' Write the cancellation step explicitly.",
+     "<strong>Two sequential conversions: build a single combined conversion rate.</strong> Apply once, not in stages.",
+   ],
+   sticky:"Write what you have → what you need. Build the unit chain. Cancel before multiplying.",
+   drill:"3 unit conversion questions — write the full unit chain before computing. Cancel step explicitly.",
+   reps:[["GMATNinja-Q12-1","Careless math","6÷3 computed as 3 instead of 2 — didn't cancel cleanly"],
+         ["GMATNinja-Q12-2","Slow correct","Unclear whether chain method applied; re-plotting took too long"],
+         ["GMATNinja-Q12-3","Slow correct","1/3 hr → 20 min — should know automatically"]],
+   patterns:["P01"]},
+
+  {rank:16,id:"untagged",title:"Untagged (Timed Out)",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Ran out of time",4]],
+   note:"All 4 are Q19–20 failures. No question data to analyze — fix upstream timing.",
+   primer:[
+     "<strong>These are caused by overspending on earlier questions.</strong> Apply the 2-minute checkpoint consistently on Q1–Q18.",
+     "<strong>Any question without a clear path at 2 minutes → educated guess and move.</strong>",
+   ],
+   sticky:"2-minute checkpoint: structure or educated guess and move. Every minute saved early is a minute saved here.",
+   drill:"Full timed section. Track clock at Q10, Q15, Q18. Log the gap.",
+   reps:[["GMAT Mock-2C-21","Ran out of time","0.5 min — forced guess"],
+         ["GMATClub-QTest1-19","Ran out of time",""],
+         ["GMATClub-QTest2-20","Ran out of time",""]],
+   patterns:["P21"]},
+];
+
+let currentFilter = 'All';
+
+function renderCards() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const container = document.getElementById('cards-container');
+  const visible = TOPICS.filter(t => {
+    if (currentFilter !== 'All' && t.priority !== currentFilter) return false;
+    if (search && !t.title.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  container.innerHTML = visible.map(t => {
+    const pclass = t.priority === 'High' ? 'danger' : t.priority === 'Medium' ? 'warning' : 'neutral';
+    const wrongStr = t.wrong > 0 ? `<span class="cnt-d">${t.wrong}✗</span>` : '';
+    const slowStr = t.slow > 0 ? `<span class="cnt-w">${t.slow}⏱</span>` : '';
+    const failRows = t.topReasons.map(([r,c]) => `<tr><td>${r}</td><td class="fail-cnt">${c}</td></tr>`).join('');
+    const primerItems = t.primer.map(p => `<li>${p}</li>`).join('');
+    const repRows = t.reps.map(([code,reason,note]) => `<tr><td class="rep-code">${code}</td><td class="rep-reason">${reason}</td><td>${note}</td></tr>`).join('');
+    const ptags = t.patterns.map(p => `<span class="ptag">${p}</span>`).join('');
+    return `<div class="topic-card" data-title="${t.title}" data-priority="${t.priority}">
+      <div class="topic-header" onclick="toggle('${t.id}')">
+        <span class="topic-rank">${t.rank}</span>
+        <span class="topic-title" style="flex:1">${t.title}</span>
+        <span class="badge ${pclass}">${t.priority}</span>
+        ${wrongStr}${slowStr}
+        <span class="chevron" id="chev-${t.id}">▼</span>
+      </div>
+      <div class="topic-body" id="body-${t.id}">
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="mini-val">${t.total}</div><div class="mini-label">Total</div></div>
+          <div class="mini-stat danger"><div class="mini-val">${t.wrong}</div><div class="mini-label">Wrong</div></div>
+          <div class="mini-stat warning"><div class="mini-val">${t.slow}</div><div class="mini-label">Slow</div></div>
+        </div>
+        <div class="sec-label">Failure-mode breakdown</div>
+        <table class="fail-table"><thead><tr><th>Reason</th><th>Count</th></tr></thead><tbody>${failRows}</tbody></table>
+        ${t.note ? `<div class="fail-note">${t.note}</div>` : ''}
+        <div class="sec-label">Concept primer</div>
+        <ol class="concept-list">${primerItems}</ol>
+        <div class="callout info"><div class="callout-label">Sticky rule</div>${t.sticky}</div>
+        <div class="callout neutral"><div class="callout-label">Drill</div>${t.drill}</div>
+        <div class="sec-label">Representative questions</div>
+        <table class="rep-table"><thead><tr><th>Code</th><th>Reason</th><th>Note</th></tr></thead><tbody>${repRows}</tbody></table>
+        <div class="sec-label">Linked v1 patterns</div>
+        <div class="pattern-tags">${ptags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id) {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('#prio-filters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function filterCards() { renderCards(); }
+
+const callout_label = 'callout-label';
+renderCards();
+</script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT Data Insights — Topic Review v2</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#252836;--border:#2d3040;--text:#e2e4ec;--text2:#8b8fa8;--text3:#5a5e75;--accent:#4f7ef8;--danger:#e05252;--warning:#d4883a;--success:#3fb68b;--info:#4aa8d8;--danger-bg:rgba(224,82,82,.1);--warning-bg:rgba(212,136,58,.1);--info-bg:rgba(74,168,216,.1);--purple:#9b6dff;--purple-bg:rgba(155,109,255,.1);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.55;padding:16px;max-width:960px;margin:0 auto;}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+p,li{color:var(--text2);font-size:0.88rem;}
+.subtitle{color:var(--text2);font-size:0.82rem;margin-bottom:16px;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+@media(min-width:500px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;}
+.stat-val{font-size:1.5rem;font-weight:700;}.stat-label{font-size:0.72rem;color:var(--text2);margin-top:2px;}
+.stat.danger .stat-val{color:var(--danger);}.stat.warning .stat-val{color:var(--warning);}
+.rules{display:flex;flex-direction:column;gap:6px;margin:12px 0;}
+.rule-box{background:var(--info-bg);border-left:3px solid var(--info);border-radius:6px;padding:9px 12px;font-size:0.85rem;font-weight:600;}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.sticky-bar{position:sticky;top:0;background:var(--bg);padding:8px 0 10px;z-index:10;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.search-wrap input{width:100%;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.86rem;}
+.search-wrap input:focus{outline:2px solid var(--accent);}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.pill{padding:3px 12px;border-radius:12px;font-size:0.76rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .15s;}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pill.ds{border-color:var(--info);color:var(--info);}
+.pill.ds.active{background:var(--info);}
+.pill.tpa{border-color:var(--success);color:var(--success);}
+.pill.tpa.active{background:var(--success);}
+.pill.msr{border-color:var(--warning);color:var(--warning);}
+.pill.msr.active{background:var(--warning);}
+.pill.gi{border-color:var(--purple);color:var(--purple);}
+.pill.gi.active{background:var(--purple);}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;}
+.topic-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;}
+.topic-header:hover{background:var(--surface2);}
+.topic-section-tag{font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;white-space:nowrap;}
+.tag-ds{background:var(--info-bg);color:var(--info);}
+.tag-tpa{background:rgba(63,182,139,.12);color:var(--success);}
+.tag-msr{background:var(--warning-bg);color:var(--warning);}
+.tag-gi{background:var(--purple-bg);color:var(--purple);}
+.tag-table{background:rgba(100,100,200,.12);color:#8899ff;}
+.topic-title{flex:1;font-size:0.9rem;font-weight:600;}
+.badge{font-size:0.7rem;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.badge.danger{border-color:var(--danger);color:var(--danger);background:var(--danger-bg);}
+.badge.warning{border-color:var(--warning);color:var(--warning);background:var(--warning-bg);}
+.badge.neutral{border-color:var(--border);color:var(--text2);}
+.cnt-d{font-size:0.8rem;font-weight:700;color:var(--danger);white-space:nowrap;}
+.cnt-w{font-size:0.8rem;font-weight:700;color:var(--warning);white-space:nowrap;margin-left:6px;}
+.chevron{color:var(--text3);font-size:0.75rem;transition:transform .2s;flex-shrink:0;}
+.chevron.open{transform:rotate(180deg);}
+.topic-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);}
+.topic-body.open{display:block;}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.mini-stat{background:var(--surface2);border-radius:6px;padding:8px;text-align:center;}
+.mini-val{font-size:1.2rem;font-weight:700;}.mini-label{font-size:0.68rem;color:var(--text2);}
+.mini-stat.danger .mini-val{color:var(--danger);}.mini-stat.warning .mini-val{color:var(--warning);}
+.sec-label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;}
+.fail-table,.rep-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:4px;}
+.fail-table th,.rep-table th{text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);color:var(--text3);font-size:0.7rem;text-transform:uppercase;}
+.fail-table td,.rep-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.fail-table tr:last-child td,.rep-table tr:last-child td{border-bottom:none;}
+.fail-cnt{font-weight:700;color:var(--danger);width:36px;}
+.rep-code{color:var(--text3);font-size:0.72rem;white-space:nowrap;}
+.rep-reason{color:var(--warning);font-size:0.75rem;white-space:nowrap;}
+.fail-note{font-size:0.8rem;color:var(--text2);padding:6px 8px;background:var(--danger-bg);border-radius:5px;margin-top:6px;border-left:3px solid var(--danger);}
+.callout{border-radius:6px;padding:9px 12px;margin:8px 0;font-size:0.83rem;border-left:3px solid;}
+.callout.info{background:var(--info-bg);border-color:var(--info);color:var(--text);}
+.callout.neutral{background:var(--surface2);border-color:var(--border);color:var(--text2);}
+.callout-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;opacity:.7;}
+.concept-list{padding-left:18px;}
+.concept-list li{color:var(--text2);font-size:0.83rem;margin:5px 0;line-height:1.5;}
+.concept-list li strong{color:var(--text);}
+.pattern-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.ptag{font-size:0.68rem;padding:2px 7px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);}
+.dmg-table{width:100%;border-collapse:collapse;font-size:0.82rem;overflow-x:auto;display:block;}
+.dmg-table th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);color:var(--text2);font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.dmg-table td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.dmg-table tr:last-child td{border-bottom:none;}
+.dmg-table tr.high td{background:var(--danger-bg);}
+.dmg-table tr.med td{background:var(--warning-bg);}
+</style>
+</head>
+<body>
+<h1>GMAT Data Insights — Topic Review v2</h1>
+<p class="subtitle">280 questions logged · Pascal 2025 · May 2026</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">280</div><div class="stat-label">Questions logged</div></div>
+  <div class="stat danger"><div class="stat-val">278</div><div class="stat-label">Wrong answers</div></div>
+  <div class="stat warning"><div class="stat-val">11</div><div class="stat-label">Slow corrects</div></div>
+  <div class="stat danger"><div class="stat-val">7</div><div class="stat-label">High-priority cards</div></div>
+</div>
+
+<div class="rules">
+  <div class="rule-box">DS: logic and sufficiency first — math second. Can this statement uniquely determine the answer?</div>
+  <div class="rule-box">MSR/TPA: stop and model the structure before attempting any answer.</div>
+  <div class="rule-box">Table: sort before computing. Check the question first, then sort the relevant column.</div>
+</div>
+
+<hr>
+
+<div class="sticky-bar">
+  <div class="search-wrap"><input type="text" id="search" placeholder="Search cards..." oninput="filterCards()"></div>
+  <div class="filters" id="filters">
+    <span class="pill active" onclick="setFilter('All',this)">All</span>
+    <span class="pill ds" onclick="setFilter('DS',this)">DS</span>
+    <span class="pill tpa" onclick="setFilter('TPA',this)">TPA</span>
+    <span class="pill msr" onclick="setFilter('MSR',this)">MSR</span>
+    <span class="pill gi" onclick="setFilter('GI',this)">GI</span>
+    <span class="pill" onclick="setFilter('Table',this)" style="border-color:#8899ff;color:#8899ff;">Table</span>
+    <span class="pill danger" onclick="setFilter('High',this)">High</span>
+    <span class="pill warning" onclick="setFilter('Medium',this)">Medium</span>
+  </div>
+</div>
+
+<div id="cards-container"></div>
+
+<hr>
+<p style="font-size:0.75rem;color:var(--text3);text-align:center;">v2 Topic Review · Pascal 2025 · May 2026 · See also: gmat-di-patterns.html (v1 pattern view)</p>
+
+<script>
+const CARDS = [
+  {id:"untagged",section:"DS",title:"Untagged (Timed Out)",priority:"High",total:50,wrong:50,slow:0,
+   topReasons:[["Ran out of time",19],["Slow correct (time consumed)",17]],
+   note:"All 50 are section-end failures. 19 forced wrong + 17 slow-correct time tax = compound timing failure.",
+   primer:[
+     "<strong>DI Checkpoint protocol:</strong> Q4 done → 20 min remaining. Q8 done → 12 min remaining. Q12 done → 5 min remaining.",
+     "<strong>Q16 with 1 min left → educated guess for remaining questions.</strong>",
+     "<strong>Root causes to fix:</strong> DS slow-correct (push discipline to 90s). TPA without rule-writing. MSR without source modeling.",
+   ],
+   sticky:"Q4=20min. Q8=12min. Q12=5min. Under target → educated guess protocol.",
+   drill:"Full timed DI section. At Q4, Q8, Q12: write clock reading on scratchpad. Track gap each session.",
+   reps:[],
+   patterns:["P-SECTION","P-SLOW"]},
+
+  {id:"ds-gwp",section:"DS",title:"DS · General Word Problems",priority:"High",total:39,wrong:38,slow:1,
+   topReasons:[["Slow correct",11],["Concept application",7],["Careless math",6],["Misread",3]],
+   note:"39 questions, 38 wrong. Slow-correct is the biggest cluster — the logic is found eventually but too late.",
+   primer:[
+     "<strong>DS is a reasoning test, not a calculation test.</strong> Goal: determine whether a statement makes the answer unique — not find the answer itself.",
+     "<strong>'What do I need?' before touching statements.</strong> Write the sufficiency condition explicitly before reading Statement 1.",
+     "<strong>Slow-correct fix: push the statement with algebra before plugging numbers.</strong> 'Does this statement give me a unique value, or multiple values, or none?' — often immediate without full computation.",
+     "<strong>Evaluate S1 alone (cover S2), then S2 alone, then together.</strong> Never read both simultaneously.",
+     "<strong>'Together' is always the last step.</strong> Many errors come from not evaluating C after finding both insufficient individually.",
+     "<strong>Ratio/percent: check if a ratio resolves the question without absolute values.</strong> 'Is %X > 50%?' — a ratio statement may be sufficient even without actual counts.",
+     "<strong>General WP DS: write the algebraic system before evaluating sufficiency.</strong> Define variables from the question stem first.",
+   ],
+   sticky:"Write 'Need: ___' before any statement. S1 alone. S2 alone. Together. Logic before math.",
+   drill:"5 DS General WP questions — write 'Need: ___' before each. Time yourself: target under 2 minutes.",
+   reps:[["Basic A-8.3-14","Concept application","Couldn't translate setup to algebraic sufficient condition"],
+         ["Basic B-1-11","Misread","Misread the target variable — computed the wrong quantity"],
+         ["GMAT Mock-3B-11","Slow correct","DS shortcut missed — pushed algebra all the way; logic shortcut visible at step 2"]],
+   patterns:["P-DS-ADV","P-DS-PROC","P-SLOW"]},
+
+  {id:"ds-stat",section:"DS",title:"DS · Statistics",priority:"High",total:15,wrong:13,slow:2,
+   topReasons:[["Slow correct",6],["Concept application",4],["Careless math",3],["Concept gap",1]],
+   note:"",
+   primer:[
+     "<strong>Mean sufficiency: total sum + count is enough.</strong> Don't need individual values or their order.",
+     "<strong>Median sufficiency is harder.</strong> Knowing mean ≠ knowing median. Mean = median only under specific distributions. Test all cases, not just the symmetric case.",
+     "<strong>SD sufficiency: rarely determinable from a single statement.</strong> 'Range = 10' is almost never sufficient for SD.",
+     "<strong>'At least / at most' statements: test boundary AND interior.</strong> 'x ≤ 8 and x is an integer' limits range but may not give a unique answer.",
+     "<strong>Symmetry fallacy: 'mean = median forces x = 8' may be wrong.</strong> Write the assumption explicitly and test all valid cases.",
+     "<strong>Weighted mean: two sub-group averages can often yield the combined mean — hidden DS sufficiency.</strong>",
+   ],
+   sticky:"Mean: sum + count. Median: order required, check boundaries. Never assume mean = median.",
+   drill:"5 DS Statistics questions — write 'Mean: sum+count. Median: order required.' before any statement evaluation.",
+   reps:[["GMAT Mock-3B-12","Slow correct","Didn't recognize sum+count → mean; computed all values instead"],
+         ["GMAT Mock-4A-12","Careless math","Symmetry fallacy — assumed mean=median forces unique x; didn't test all cases"],
+         ["Basic A-8.3-6","Concept gap","DS statistics framework not established before attempting"]],
+   patterns:["P-DS-ADV","P-DS-PROC","P-STAT"]},
+
+  {id:"ds-overlap",section:"DS",title:"DS · Overlapping Sets",priority:"High",total:12,wrong:11,slow:1,
+   topReasons:[["Slow correct",3],["Concept application",2],["Concept gap",2],["Careless math",2]],
+   note:"",
+   primer:[
+     "<strong>Write F1 or F2 before evaluating statements.</strong> F1 (pairwise): Total = A+B+C − (AB+AC+BC) + bullseye. F2 (exactly-two): Total = A+B+C − exactly2 − 2×bullseye.",
+     "<strong>In DS: ask 'does this statement make the overlap unique?' — not 'what is the overlap?'</strong>",
+     "<strong>Two-set DS: a statement giving A∩B directly is almost always sufficient.</strong> A statement giving only A or only B alone is almost never sufficient.",
+     "<strong>Disguised overlapping sets: 'both property X and Y' questions are Venn questions.</strong>",
+   ],
+   sticky:"Write F1/F2 first. DS ask: 'does this statement make the overlap unique?'",
+   drill:"3 DS Overlapping Sets questions — write F1 or F2 before touching any statement.",
+   reps:[["Basic A-8.3-2","Concept application","Formula correct; didn't apply to identify sufficiency"],
+         ["Basic A-8.3-4","Concept gap","Framework not established before attempting"]],
+   patterns:["P-DS-ADV","P-DS-PROC","P-SETS"]},
+
+  {id:"tpa-unc",section:"TPA",title:"TPA · Unclassified",priority:"High",total:34,wrong:33,slow:1,
+   topReasons:[["Slow correct",12],["Missed important detail",5],["Misread/misinterpret",3],["Guessed correctly (unstable)",2]],
+   note:"12 slow-corrects in 34 = 35% slow rate. TPA passages are being processed as narratives instead of rule systems.",
+   primer:[
+     "<strong>Stop and get the heart of the passage first.</strong> TPA passages are not stories — they are logical structures with rules. Extract the rule set before attempting any answer.",
+     "<strong>Write every rule as an if-then statement.</strong> 'Each document reviewed by X must also be reviewed by Y' → DocX → DocY.",
+     "<strong>'Reviewed by role R' = applies to ALL documents reviewed by ANYONE in role R.</strong> Not just the initial reviewer. (GMATNinja-DI5-3)",
+     "<strong>The two columns are linked — solve for the pair jointly.</strong> Don't satisfy one column independently and check the other.",
+     "<strong>Missed detail = passage not fully modeled.</strong> Write ALL rules before touching choices.",
+     "<strong>At 90s without full passage model: don't start choices.</strong> Re-read and tag rules first.",
+   ],
+   sticky:"Read passage → write all rules as if-then → THEN attempt answers. 'Reviewed by role' applies to all instances.",
+   drill:"5 TPA verbal questions — write all passage rules as if-then statements before choices. Target: rules complete within 90 seconds.",
+   reps:[["GMAT Mock-4B-18","Misread","Treated passage as narrative story — missed a branching condition"],
+         ["GMATNinja-DI5-3","Misread","'Reviewed by supervisor' rule applied only to initial reviewer — missed universal scope"],
+         ["Basic B-1-19","Careless mistake","Rules modeled correctly; arithmetic slip on final combination"]],
+   patterns:["P-TPA-PROC","P-FUZZ","P-SLOW"]},
+
+  {id:"msr-unc",section:"MSR",title:"MSR · Unclassified",priority:"High",total:20,wrong:18,slow:2,
+   topReasons:[["Misread/misinterpret",5],["Committed without stable model",4],["Missed detail",1],["Guessed incorrectly",1]],
+   note:"4 'committed without stable model' — the largest single failure cluster. MSR requires reading all sources before any question.",
+   primer:[
+     "<strong>Read all source tabs before any question.</strong> Build a 1-sentence summary per source: what it claims, what it measures, what it compares.",
+     "<strong>Draw a tree or table when sources have overlapping claims.</strong> 'Not drawing the root tree, logic is fuzzy and I avoid thinking.' Structure prevents fuzzy logic.",
+     "<strong>Redraw any confusing table for better visualization.</strong> Sketch a cleaner version with only relevant rows and columns.",
+     "<strong>Track who each claim belongs to.</strong> Which tab? Which speaker? Tag every claim before answering.",
+     "<strong>MSR inference = RC inference discipline.</strong> Count steps. 0 or 1 = valid. 2+ = reject. No story-building.",
+     "<strong>Excess information is normal — don't panic.</strong> Use what the question needs; ignore the rest. Don't try to incorporate everything.",
+   ],
+   sticky:"Read all sources → draw tree/table → 1-sentence summary per source → THEN questions. Excess info is normal.",
+   drill:"1 MSR passage — before any question, write: 'Source 1: ___. Source 2: ___. Source 3: ___.' Time the modeling: target under 3 minutes.",
+   reps:[["Advance-4.1-18","Missed detail","Ethicist evaluating an ethicist — redraw table for clearer visualization"],
+         ["GMAT Mock-4A-7","Unstable model","Jumped to conclusion without evidence; track who says what"],
+         ["GMATNinja-DI7-6","Unstable model","Didn't draw root tree — logic fuzzy; drew tree on retry, solved correctly"]],
+   patterns:["P-MSR-PROC","P-FUZZ","P-SLOW"]},
+
+  {id:"gi-stat",section:"GI",title:"GI · Statistics",priority:"High",total:13,wrong:13,slow:0,
+   topReasons:[["Ran out of time",4],["Concept gap",2],["Committed without stable model",1],["Concept application",1]],
+   note:"",
+   primer:[
+     "<strong>Orient to graph axes before anything else.</strong> Write 'x-axis = ___, y-axis = ___, unit = ___' before computing. Many errors come from misidentifying axes.",
+     "<strong>Read the question first — before reading the graph.</strong> GI questions tell you exactly what to find. Don't summarize the whole graph first.",
+     "<strong>Box plots: Q1 to Q3 is the box. Line inside = median (Q2). Whiskers = min/max.</strong>",
+     "<strong>Scale traps: y-axis may not start at 0.</strong> Check the origin before computing a difference or ratio.",
+     "<strong>Timing fix.</strong> 4 of 13 are pure timing failures. Apply DI checkpoint: Q4=20min, Q8=12min.",
+     "<strong>Concept gaps: automate statistics vocabulary in graphical context.</strong> Mean, median, IQR, SD must be automatic from a chart, not just from a formula.",
+   ],
+   sticky:"x-axis = ___, y-axis = ___, unit = ___. Read question before graph. Check axis origin before comparing heights.",
+   drill:"3 GI statistics questions — write axis orientation as line 1. Mark the specific data point before evaluating choices.",
+   reps:[["Basic A-8.3-5","Concept application","Stats concept applied to GI context — axis labeling issue"],
+         ["Basic A-8.3-12","Unstable model","Attempted without understanding chart — should label axes first"]],
+   patterns:["P-GI-PROC","P-STAT","P-SECTION"]},
+
+  {id:"ds-rate",section:"DS",title:"DS · Rate Problems",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Slow correct",2],["Concept application",2],["Careless math",1],["Info not used",1]],
+   note:"",
+   primer:[
+     "<strong>ART grid with empty cells = unknowns.</strong> A statement is sufficient only if it fills all remaining unknowns.",
+     "<strong>'Knowing distance' is NOT sufficient for rate/time without knowing the other.</strong> d/t = r requires two of the three to find the third.",
+     "<strong>+1/n framing: slower person has the larger time fraction.</strong> Write the relationship explicitly before deciding sufficiency.",
+     "<strong>Push the DS question until you've verified 'is the answer uniquely determined?'</strong> Don't stop at the first algebraic expression.",
+   ],
+   sticky:"ART grid with empty cells. Statement sufficient = fills all remaining unknowns.",
+   drill:"3 DS Rate questions — draw ART grid before touching statements. Mark which cells remain empty.",
+   reps:[["OG-DIR2025-11","Careless math","+1/4 on husband — slower reaches same distance. Misassigned rate fraction"],
+         ["GMATNinja-Q12-5","Concept application","Didn't push DRT grid — target was Da1, not Total"]],
+   patterns:["P-DS-ADV","P-DS-PROC","P-RATE"]},
+
+  {id:"tpa-gwp",section:"TPA",title:"TPA · General Word Problems",priority:"Medium",total:7,wrong:7,slow:0,
+   topReasons:[["Ran out of time",2],["Careless math",2],["Concept application",2],["Concept gap",1]],
+   note:"",
+   primer:[
+     "<strong>Discrete TPA: both answers must be integers.</strong> Feasibility constrained by integer conditions — check this before computing.",
+     "<strong>Start with algebra, then test smallest valid integer.</strong> 'Start from algebra; if no algebra possible, start from smallest integer.' Identify bounds before testing.",
+     "<strong>Track constraints from both the question stem AND the passage body.</strong>",
+     "<strong>Don't introduce a 3rd variable if two can do the job.</strong>",
+   ],
+   sticky:"Check integer constraints first. Write algebra. Test smallest valid integer first.",
+   drill:"3 TPA General WP questions — write integer constraint check as line 1.",
+   reps:[["GMAT Mock-3B-17","Concept application","Discrete constraint missed — department count must be whole number"],
+         ["Advance-4.1-14","Concept gap","Start with algebra + smallest integer — brute-forced without structure"]],
+   patterns:["P-TPA-PROC","P-SLOW","P-INT"]},
+
+  {id:"msr-inf",section:"MSR",title:"MSR · Inference",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Built unsupported story",2],["Eliminated correct as irrelevant",1],["Slow correct",1],["Committed without stable model",1]],
+   note:"",
+   primer:[
+     "<strong>MSR inference = RC inference discipline, applied to multi-tab evidence.</strong> Count steps. 0 or 1 = valid. Don't story-build.",
+     "<strong>Use consistent initials when comparing entities across sources.</strong>",
+     "<strong>Anchor a choice to a specific tab + row before eliminating.</strong>",
+     "<strong>'Likely' + 'on average' is still inferable from aggregate data.</strong> Probability language doesn't invalidate an inference from a distribution trend.",
+   ],
+   sticky:"MSR inference: count steps. Anchor to specific tab + row before eliminating.",
+   drill:"3 MSR inference questions — after choosing, write the exact tab + row that supports your answer.",
+   reps:[["Advance-4.1-17","Eliminated correct","No NA vs. OP comparison — redraw with consistent initials to see absence"],
+         ["GMATNinja-DI11-5","Scope error","'Likely on average' read as Cannot Infer — actually valid from aggregate data"]],
+   patterns:["P-MSR-PROC","P-ESCALATE","P-FUZZ"]},
+
+  {id:"gi-unc",section:"GI",title:"GI · Unclassified",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Scope error",1],["Over-inferred",1],["Committed without stable model",1],["Guessed incorrectly",1]],
+   note:"",
+   primer:[
+     "<strong>GI questions ask about graph values — not plausibility.</strong> 'I turned a simple highest-price question into a trading story.' Read the question. Answer what is asked.",
+     "<strong>Know the difference between 'does this statement help explain X' and 'is this statement derived from the graph'.</strong> Two different questions — read the exact type.",
+     "<strong>Label axes and scale before answering any question.</strong>",
+     "<strong>Feeling careful ≠ being careful.</strong> Write what the question asks, write the specific data point, write the answer direction — then choose.",
+   ],
+   sticky:"Read the question. Answer exactly what is asked — not what is plausible.",
+   drill:"3 GI Unclassified questions — write 'Q asks: ___' as line 1 before touching the graph.",
+   reps:[["OG-DIR2025-700251","Over-inferred","Turned 'highest price' question into buy-low/sell-high story — prompt only asks where to sell"],
+         ["GMAT Mock-3B-6","Scope error","'Explain motives' ≠ 'derived from graph' — misidentified the question type"]],
+   patterns:["P-GI-PROC","P-SCOPE","P-FUZZ"]},
+
+  {id:"table-unc",section:"Table",title:"Table · Unclassified",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Slow correct",3],["Missed detail",1],["Careless mistake",1],["Committed without stable model",1]],
+   note:"",
+   primer:[
+     "<strong>Sort first.</strong> Clickable arrows at column top. Sort by the relevant column before reading rows.",
+     "<strong>Read title and column headers before sorting.</strong> Know what each column represents before choosing which to sort by.",
+     "<strong>You may need to sort multiple ways.</strong> This is expected — not a sign of misunderstanding.",
+     "<strong>Cut early on Yes/No table questions.</strong> As soon as the sorted order reveals the pattern, stop — don't check every row.",
+     "<strong>After finding the obvious answer, check if other rows also qualify.</strong>",
+     "<strong>Calculator: use for arithmetic you can't estimate in 10 seconds — not for simple comparisons.</strong>",
+   ],
+   sticky:"Read title + headers. Sort by relevant column. Check for equally qualifying rows after first match.",
+   drill:"3 Table questions — write column headers from memory before sorting. Time sort-to-answer: target under 90 seconds.",
+   reps:[["GMAT Mock-4A-6","Slow correct","Didn't cut early — kept checking after pattern was clear"],
+         ["GMAT Mock-1D-3","Missed detail","Locked onto cheapest option — missed equally cheap Salmon"],
+         ["GMAT Mock-1D-10","Slow correct","Inefficient calculator use — should estimate quickly and move"]],
+   patterns:["P-TABLE-PROC","P-SLOW"]},
+
+  {id:"tpa-pct",section:"TPA",title:"TPA · Percent WP",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Ran out of time",2],["Concept application",1],["Careless math",1]],
+   note:"",
+   primer:[
+     "<strong>Label every branch explicitly.</strong> 'Draw branches and label each one with its condition (e.g., <3p vs. ≥3p).' (GMAT Mock-3B-19)",
+     "<strong>Set up the equation first, then decide which column to fill in which order.</strong>",
+     "<strong>Don't introduce unnecessary variables.</strong>",
+   ],
+   sticky:"Draw and label every branch before computing. Fill easier column first.",
+   drill:"3 TPA Percent questions — draw the branching structure and label all branches before computing.",
+   reps:[["GMAT Mock-3B-19","Misread","Mislabeled <3p vs. ≥3p branches — wrong branch used for computation"]],
+   patterns:["P-TPA-PROC","P-SECTION"]},
+
+  {id:"tpa-prob",section:"TPA",title:"TPA · Probability",priority:"Medium",total:5,wrong:5,slow:0,
+   topReasons:[["Ran out of time",2],["Slow correct",1],["Concept application",1],["Guessed correctly",1]],
+   note:"",
+   primer:[
+     "<strong>Joint probability x·y only works if both events are independent.</strong> If independence isn't stated, evaluate each feasible pair individually.",
+     "<strong>Layout probability formula before building the grid.</strong> Write P(A) and P(B) and the relationship formula first.",
+     "<strong>Grid system for TPA probability.</strong> Rows = column-1 values, columns = column-2 values. Mark feasible pairs.",
+   ],
+   sticky:"Check independence before applying joint probability formula. Layout formula → grid → feasible pairs.",
+   drill:"3 TPA Probability questions — write independence check as line 1. If not independent: enumerate feasible pairs.",
+   reps:[["OG-DIR2025-700202","Slow correct","Independence not established — had to evaluate each pair individually"],
+         ["GMAT Mock-4B-17","Ran out of time","Formula not laid out before starting — fumbled under time pressure"]],
+   patterns:["P-TPA-PROC","P-PROB","P-SECTION"]},
+
+  {id:"msr-stat",section:"MSR",title:"MSR · Statistics",priority:"Low",total:3,wrong:3,slow:0,
+   topReasons:[["Misread",2],["Concept gap",1]],
+   note:"",
+   primer:[
+     "<strong>Cumulative = running total.</strong> Y-axis cumulative = running sum, not per-period value. Marginal = period_n minus period_(n-1).",
+     "<strong>Percentile is a rank, not a value.</strong> Percentile 83 means 83% of the distribution is below — not that the value IS 83.",
+     "<strong>Use exact intersections when data points are close on scale.</strong>",
+   ],
+   sticky:"Cumulative = running sum. Percentile = rank (% below), not the value itself.",
+   drill:"2 MSR Statistics questions — write 'y-axis = ___' and 'cumulative or per-period?' before computing.",
+   reps:[["Advance-4.2-12","Misread","Cumulative not recognized — read as per-period value"],
+         ["GMATNinja-DI7-1","Misread","Percentile (decimal) vs. height (decimal) — mixed up which was which"]],
+   patterns:["P-MSR-PROC","P-STAT"]},
+
+  {id:"ds-ineq",section:"DS",title:"DS · Inequalities & AV",priority:"Low",total:5,wrong:5,slow:0,
+   topReasons:[["Concept gap",3],["Concept application",2]],
+   note:"",
+   primer:[
+     "<strong>One-sided bound is usually insufficient.</strong> 'x > 3' alone doesn't answer 'Is x > 5?' without an upper bound.",
+     "<strong>|x| = 5 has two solutions: x = 5 or x = −5.</strong> Check both before deciding sufficiency.",
+     "<strong>Combine inequalities algebraically and check if the threshold falls uniquely inside or outside the range.</strong>",
+   ],
+   sticky:"One-sided bound → usually insufficient. |x| = k → check both ±k cases before deciding.",
+   drill:"3 DS Inequality questions — write 'bound one-sided or two-sided?' before any statement evaluation.",
+   reps:[],
+   patterns:["P-DS-ADV","P-INEQ"]},
+
+  {id:"gi-pct",section:"GI",title:"GI · Percent WP",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Ran out of time",3],["Concept application",1]],
+   note:"",
+   primer:[
+     "<strong>Read the question target before reading the graph.</strong> 'What % increase in X from year A to year B?' → identify X, year A, year B → THEN find on graph.",
+     "<strong>If y-axis shows absolute count, compute (new−old)/old × 100 — the axis doesn't give % directly.</strong>",
+   ],
+   sticky:"Read question target first. Compute % from absolute counts — axis doesn't give % directly.",
+   drill:"3 GI Percent questions — write 'x-axis, y-axis, unit' and 'question target' before touching the graph.",
+   reps:[],
+   patterns:["P-GI-PROC","P-SECTION"]},
+
+  {id:"table-stat",section:"Table",title:"Table · Statistics",priority:"Low",total:3,wrong:3,slow:0,
+   topReasons:[["Slow correct",2],["Careless mistake",1]],
+   note:"",
+   primer:[
+     "<strong>Median in Table: sort the relevant column, find the physical middle row.</strong>",
+     "<strong>Even count: average the two middle values.</strong> 'If median of even unit: average it!'",
+     "<strong>Unit conversion in Table: write the unit next to every computed value.</strong>",
+   ],
+   sticky:"Sort → find middle row → for even count, average the two middle. Write units always.",
+   drill:"2 Table Statistics questions — after sorting, write 'n = ___, median position = ___' before computing.",
+   reps:[["Advance-4.1-9","Careless mistake","Median of even set: didn't average the two middle values; pxl unit conversion error"]],
+   patterns:["P-TABLE-PROC","P-STAT"]},
+
+  {id:"ds-ratio",section:"DS",title:"DS · Ratios",priority:"Low",total:5,wrong:5,slow:0,
+   topReasons:[["Careless math",1],["Info not used",1],["Slow correct",1],["Guessed correctly",1]],
+   note:"",
+   primer:[
+     "<strong>In DS ratio questions: a ratio statement is often sufficient even without absolute values.</strong> 'Is A/B > 1?' — a statement giving A/B ratio directly is sufficient.",
+     "<strong>Put it in ratio grid.</strong> 'Realize it is enough once you put it in ratio form.' (Basic B-2-4)",
+     "<strong>Read carefully whether it's a probability/ratio problem in disguise.</strong>",
+   ],
+   sticky:"DS ratio: ratio grid. A ratio statement may be sufficient without absolute values.",
+   drill:"3 DS Ratio questions — draw the ratio grid before evaluating statements.",
+   reps:[["Basic B-2-4","Info not used","Not recognizing it was a probability/ratio problem; ratio grid resolved it"]],
+   patterns:["P-DS-ADV","P-RATIO"]},
+
+  {id:"ds-unc",section:"DS",title:"DS · Unclassified",priority:"Medium",total:7,wrong:7,slow:0,
+   topReasons:[["Slow correct",1]],
+   note:"",
+   primer:[
+     "<strong>Domain vocabulary precision.</strong> 'Peer-reviewed' ≠ 'blind peer-reviewed.' Word-level differences change logical relationships entirely.",
+     "<strong>Fixed-unknown-constants DS: question tests whether statements pin the constant, not whether it has a specific value.</strong>",
+     "<strong>Push one more step.</strong> Most common failure across unclassified DS: stopping after identifying a plausible algebraic expression rather than verifying unique value.",
+   ],
+   sticky:"DS push: verify 'is the answer uniquely determined?' — not just 'is there an algebraic expression?'",
+   drill:"3 DS Unclassified questions — write 'unique value?' as the final check before committing.",
+   reps:[["OG-DIR2025-33","Domain vocab","Peer-reviewed ≠ blind peer-reviewed — word-level precision changed the logical relationship"]],
+   patterns:["P-DS-ADV","P-DS-PROC"]},
+];
+
+let currentFilter = 'All';
+
+const TAG_CLASSES = {DS:'tag-ds',TPA:'tag-tpa',MSR:'tag-msr',GI:'tag-gi',Table:'tag-table'};
+
+function renderCards() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const container = document.getElementById('cards-container');
+  const visible = CARDS.filter(c => {
+    if (['DS','TPA','MSR','GI','Table'].includes(currentFilter) && c.section !== currentFilter) return false;
+    if (currentFilter === 'High' && c.priority !== 'High') return false;
+    if (currentFilter === 'Medium' && c.priority !== 'Medium') return false;
+    if (currentFilter === 'Low' && c.priority !== 'Low') return false;
+    if (search && !c.title.toLowerCase().includes(search) && !c.section.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  container.innerHTML = visible.map(c => {
+    const pclass = c.priority === 'High' ? 'danger' : c.priority === 'Medium' ? 'warning' : 'neutral';
+    const tagClass = TAG_CLASSES[c.section] || 'tag-ds';
+    const wrongStr = c.wrong > 0 ? `<span class="cnt-d">${c.wrong}✗</span>` : '';
+    const slowStr = c.slow > 0 ? `<span class="cnt-w">${c.slow}⏱</span>` : '';
+    const failRows = c.topReasons.map(([r,n]) => `<tr><td>${r}</td><td class="fail-cnt">${n}</td></tr>`).join('');
+    const primerItems = c.primer.map(p => `<li>${p}</li>`).join('');
+    const repRows = c.reps.map(([code,reason,note]) => `<tr><td class="rep-code">${code}</td><td class="rep-reason">${reason}</td><td>${note}</td></tr>`).join('');
+    const ptags = c.patterns.map(p => `<span class="ptag">${p}</span>`).join('');
+    return `<div class="topic-card" data-section="${c.section}" data-priority="${c.priority}">
+      <div class="topic-header" onclick="toggle('${c.id}')">
+        <span class="topic-section-tag ${tagClass}">${c.section}</span>
+        <span class="topic-title">${c.title.replace(/^[A-Z]+ · /,'')}</span>
+        <span class="badge ${pclass}">${c.priority}</span>
+        ${wrongStr}${slowStr}
+        <span class="chevron" id="chev-${c.id}">▼</span>
+      </div>
+      <div class="topic-body" id="body-${c.id}">
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="mini-val">${c.total}</div><div class="mini-label">Total</div></div>
+          <div class="mini-stat danger"><div class="mini-val">${c.wrong}</div><div class="mini-label">Wrong</div></div>
+          <div class="mini-stat warning"><div class="mini-val">${c.slow}</div><div class="mini-label">Slow</div></div>
+        </div>
+        <div class="sec-label">Failure-mode breakdown</div>
+        <table class="fail-table"><thead><tr><th>Reason</th><th>Count</th></tr></thead><tbody>${failRows}</tbody></table>
+        ${c.note ? `<div class="fail-note">${c.note}</div>` : ''}
+        <div class="sec-label">Concept primer</div>
+        <ol class="concept-list">${primerItems}</ol>
+        <div class="callout info"><div class="callout-label">Sticky rule</div>${c.sticky}</div>
+        <div class="callout neutral"><div class="callout-label">Drill</div>${c.drill}</div>
+        ${c.reps.length > 0 ? `<div class="sec-label">Representative questions</div>
+        <table class="rep-table"><thead><tr><th>Code</th><th>Reason</th><th>Note</th></tr></thead><tbody>${repRows}</tbody></table>` : ''}
+        <div class="sec-label">Linked v1 patterns</div>
+        <div class="pattern-tags">${ptags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id) {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('#filters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function filterCards() { renderCards(); }
+renderCards();
+</script>
+</body>
+</html>

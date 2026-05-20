@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMAT Verbal — Topic Review v2</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#252836;--border:#2d3040;--text:#e2e4ec;--text2:#8b8fa8;--text3:#5a5e75;--accent:#4f7ef8;--danger:#e05252;--warning:#d4883a;--success:#3fb68b;--info:#4aa8d8;--danger-bg:rgba(224,82,82,.1);--warning-bg:rgba(212,136,58,.1);--info-bg:rgba(74,168,216,.1);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.55;padding:16px;max-width:960px;margin:0 auto;}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+h2{font-size:1.05rem;font-weight:600;margin:20px 0 8px;color:var(--text);}
+p,li{color:var(--text2);font-size:0.88rem;}
+.subtitle{color:var(--text2);font-size:0.82rem;margin-bottom:16px;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+@media(min-width:500px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;}
+.stat-val{font-size:1.5rem;font-weight:700;}.stat-label{font-size:0.72rem;color:var(--text2);margin-top:2px;}
+.stat.danger .stat-val{color:var(--danger);}.stat.warning .stat-val{color:var(--warning);}
+.rules{display:flex;flex-direction:column;gap:6px;margin:12px 0;}
+.rule-box{background:var(--info-bg);border-left:3px solid var(--info);border-radius:6px;padding:9px 12px;font-size:0.85rem;font-weight:600;}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.sticky-bar{position:sticky;top:0;background:var(--bg);padding:8px 0 10px;z-index:10;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.search-wrap input{width:100%;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.86rem;}
+.search-wrap input:focus{outline:2px solid var(--accent);}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.pill{padding:3px 12px;border-radius:12px;font-size:0.76rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .15s;}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pill.cr{border-color:var(--info);color:var(--info);}
+.pill.cr.active{background:var(--info);}
+.pill.rc{border-color:var(--success);color:var(--success);}
+.pill.rc.active{background:var(--success);}
+.section-divider{font-size:0.95rem;font-weight:700;color:var(--text2);padding:8px 0 4px;border-bottom:1px solid var(--border);margin:16px 0 8px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;}
+.topic-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;}
+.topic-header:hover{background:var(--surface2);}
+.topic-section-tag{font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+.tag-cr{background:var(--info-bg);color:var(--info);}
+.tag-rc{background:rgba(63,182,139,.12);color:var(--success);}
+.topic-title{flex:1;font-size:0.9rem;font-weight:600;}
+.badge{font-size:0.7rem;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.badge.danger{border-color:var(--danger);color:var(--danger);background:var(--danger-bg);}
+.badge.warning{border-color:var(--warning);color:var(--warning);background:var(--warning-bg);}
+.badge.neutral{border-color:var(--border);color:var(--text2);}
+.cnt-d{font-size:0.8rem;font-weight:700;color:var(--danger);white-space:nowrap;}
+.cnt-w{font-size:0.8rem;font-weight:700;color:var(--warning);white-space:nowrap;margin-left:6px;}
+.chevron{color:var(--text3);font-size:0.75rem;transition:transform .2s;flex-shrink:0;}
+.chevron.open{transform:rotate(180deg);}
+.topic-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);}
+.topic-body.open{display:block;}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.mini-stat{background:var(--surface2);border-radius:6px;padding:8px;text-align:center;}
+.mini-val{font-size:1.2rem;font-weight:700;}.mini-label{font-size:0.68rem;color:var(--text2);}
+.mini-stat.danger .mini-val{color:var(--danger);}.mini-stat.warning .mini-val{color:var(--warning);}
+.sec-label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;}
+.fail-table,.rep-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:4px;}
+.fail-table th,.rep-table th{text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);color:var(--text3);font-size:0.7rem;text-transform:uppercase;}
+.fail-table td,.rep-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.fail-table tr:last-child td,.rep-table tr:last-child td{border-bottom:none;}
+.fail-cnt{font-weight:700;color:var(--danger);width:36px;}
+.rep-code{color:var(--text3);font-size:0.72rem;white-space:nowrap;}
+.rep-reason{color:var(--warning);font-size:0.75rem;white-space:nowrap;}
+.fail-note{font-size:0.8rem;color:var(--text2);padding:6px 8px;background:var(--danger-bg);border-radius:5px;margin-top:6px;border-left:3px solid var(--danger);}
+.callout{border-radius:6px;padding:9px 12px;margin:8px 0;font-size:0.83rem;border-left:3px solid;}
+.callout.info{background:var(--info-bg);border-color:var(--info);color:var(--text);}
+.callout.neutral{background:var(--surface2);border-color:var(--border);color:var(--text2);}
+.callout-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;opacity:.7;}
+.concept-list{padding-left:18px;}
+.concept-list li{color:var(--text2);font-size:0.83rem;margin:5px 0;line-height:1.5;}
+.concept-list li strong{color:var(--text);}
+.pattern-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.ptag{font-size:0.68rem;padding:2px 7px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);}
+.dmg-table{width:100%;border-collapse:collapse;font-size:0.82rem;overflow-x:auto;display:block;}
+.dmg-table th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);color:var(--text2);font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.dmg-table td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.dmg-table tr:last-child td{border-bottom:none;}
+.dmg-table tr.high td{background:var(--danger-bg);}
+.dmg-table tr.med td{background:var(--warning-bg);}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<h1>GMAT Verbal — Topic Review v2</h1>
+<p class="subtitle">222 questions logged · Pascal 2025 · May 2026</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">222</div><div class="stat-label">Questions logged</div></div>
+  <div class="stat danger"><div class="stat-val">222</div><div class="stat-label">Wrong answers</div></div>
+  <div class="stat warning"><div class="stat-val">1</div><div class="stat-label">Slow corrects</div></div>
+  <div class="stat danger"><div class="stat-val">8</div><div class="stat-label">High-priority cards</div></div>
+</div>
+
+<div class="rules">
+  <div class="rule-box">Write Q-type before reading choices. EXCEPT = find the one that DOESN'T.</div>
+  <div class="rule-box">First pass = heart of passage. Fuzzy? Stop → restate structure → then choices.</div>
+  <div class="rule-box">Q5: 35 min. Q10: 25 min. Q15: 15 min. Over budget? Cap next 5 at 90 sec.</div>
+</div>
+
+<hr>
+
+<div class="sticky-bar">
+  <div class="search-wrap"><input type="text" id="search" placeholder="Search cards..." oninput="filterCards()"></div>
+  <div class="filters" id="filters">
+    <span class="pill active" onclick="setFilter('All',this)">All</span>
+    <span class="pill cr" onclick="setFilter('CR',this)">CR</span>
+    <span class="pill rc" onclick="setFilter('RC',this)">RC</span>
+    <span class="pill danger" onclick="setFilter('High',this)">High</span>
+    <span class="pill warning" onclick="setFilter('Medium',this)">Medium</span>
+    <span class="pill" onclick="setFilter('Low',this)">Low</span>
+  </div>
+</div>
+
+<div id="cards-container"></div>
+
+<hr>
+<p style="font-size:0.75rem;color:var(--text3);text-align:center;">v2 Topic Review · Pascal 2025 · May 2026 · See also: gmat-verbal-patterns.html (v1 pattern view)</p>
+
+<script>
+const CARDS = [
+  {id:"rc-inf",section:"RC",title:"RC · Inference",priority:"High",total:51,wrong:50,slow:1,
+   topReasons:[["Misread/misinterpret",10],["Slow correct",8],["Committed without stable model",7],["Guessed correctly (unstable)",6]],
+   note:"The largest single card in the verbal log. 10 misreads + 7 unstable-model errors = 17 wrongs where the choice was evaluated against a wrong understanding of the passage.",
+   primer:[
+     "<strong>RC inference = what is directly supported by the passage, no more.</strong> If it can't be anchored to a specific line, it is not an inference. Add nothing beyond what is stated.",
+     "<strong>Fuzzy passage → stop before choices, restate structure in 2 sentences.</strong> Committing to choices before stabilizing the model is the source of 7 wrongs in this set.",
+     "<strong>Count your inference steps.</strong> 0 = stated; 1 = valid inference; 2+ = almost certainly wrong. The GMAT reliably punishes multi-step inference chains.",
+     "<strong>Hedge words constrain inference choices.</strong> Circle: may, could, tends, some, more, often, suggests. Any answer that upgrades these words is eliminated.",
+     "<strong>'Too close to the text' is not a reason to eliminate.</strong> The correct inference often directly paraphrases one sentence — that is the point.",
+     "<strong>Always ask who is speaking.</strong> Author vs. scholar vs. historical figure — conflating a scholar's view with the author's view inverts the inference. (RC Ep2: track point of view as you read.)",
+     "<strong>Science passages: label unfamiliar technical terms.</strong> 'X = the thing they measure about ice' — assign a label and move on. Track it consistently, don't need to fully understand it.",
+   ],
+   sticky:"Count steps. 0 or 1 = valid. 2+ = reject. 'Could' ≠ 'will.' Anchor to a specific line before choosing.",
+   drill:"5 RC inference questions. After choosing, count the inference steps. Write the specific passage line that supports your answer.",
+   reps:[["Basic A-6.4-14","Over-inferred","Built a convoluted story — 3+ steps from any stated claim"],
+         ["OG-VR2020-9","Misread","Descriptive policy outcome read as a recommendation — over-extended author analysis"],
+         ["OG-VR2020-46","Misread","'Y used when X is difficult' → Y = second approach, not primary — 1-step misread"],
+         ["GMAT Mock-4A-8","Unstable model","Passage not understood — should have restated structure before proceeding"]],
+   patterns:["P-FUZZ","P-ESCALATE","P-CHAIN","P-SHALLOW"]},
+
+  {id:"cr-eval",section:"CR",title:"CR · Evaluate the Argument",priority:"High",total:15,wrong:15,slow:0,
+   topReasons:[["Guessed correctly (unstable)",4],["Ran out of time",2],["Slow correct",2],["Trap answer — word match",2]],
+   note:"4 guessed-correctly means you got the answer with an unstable process — these will not replicate. 2 trap-answer errors show the 'familiar vocabulary → wrong logic' pattern.",
+   primer:[
+     "<strong>Evaluate questions test a specific gap, not general relevance.</strong> The correct answer is a question whose yes-or-no answer changes whether the conclusion holds. Directionally neutral = wrong.",
+     "<strong>Compress to 'Because X, therefore Y' before choices.</strong> Evaluate questions are only solvable once you've isolated exactly what X→Y depends on.",
+     "<strong>Apply the yes/no test.</strong> If yes → strengthens AND if no → weakens (or vice versa): that's the correct Evaluate answer. If yes and no both go the same direction — wrong.",
+     "<strong>'Present' has two meanings.</strong> Present = to show evidence (verb). Present = existing now (adjective). Rewrite ambiguous choices with a comma to separate interpretations.",
+     "<strong>Vocabulary in choices matters.</strong> 'Takes for granted' = assumes without support. 'Envisage' = foresee. When a choice contains an unfamiliar word, infer from context rather than eliminating.",
+     "<strong>Guessed correctly ≠ controlled correctly.</strong> After any guessed correct: write what made you uncertain and which reasoning eliminated the wrong choice.",
+     "<strong>Trap signature: repeats words from the stimulus in the wrong logical role.</strong> A choice that re-states the conclusion's topic without opening a gap in X→Y is the planted trap.",
+   ],
+   sticky:"Yes → strengthens AND no → weakens (or vice versa). That's the Evaluate answer. Directionally neutral = eliminate.",
+   drill:"5 Evaluate questions. Write 'Gap: ___' before choices. Apply yes/no test explicitly to each finalist.",
+   reps:[["GMAT Mock-2B-14","Guessed correctly","'Present' ambiguous — rewrite with comma to separate verb/adjective meaning"],
+         ["GMAT Mock-3A-16","Slow correct","Vocab: 'takes for granted', 'envisage' slowed choice evaluation"],
+         ["Basic A-Final-23","Ran out of time","End-of-section — upstream timing overrun"]],
+   patterns:["P-SLOW","P-SECTION","P-TRAP-KEYWORD","P-GUESS-WARN","P-VOCAB"]},
+
+  {id:"cr-weak",section:"CR",title:"CR · Weaken Argument",priority:"High",total:14,wrong:14,slow:0,
+   topReasons:[["Ran out of time",4],["Slow correct",4],["Didn't stabilize argument",3],["Eliminated correct as irrelevant",1]],
+   note:"8 of 14 are timing failures. The argument structure is being engaged — but not efficiently enough.",
+   primer:[
+     "<strong>Compress to 'Because X, therefore Y' in one sentence before choices.</strong> If you can't state this cleanly, re-read before proceeding. Committing without a stable argument is the source of 3 wrongs here.",
+     "<strong>A weakener attacks the X→Y link — not just mentions the topic.</strong> It shows X doesn't necessarily cause Y, offers an alternative explanation, or closes a gap. The correct answer often looks mundane.",
+     "<strong>Weaken the conclusion, not the premises.</strong> Stated facts are taken as given. Attacking a stated premise is never the weakener.",
+     "<strong>'Irrelevant' requires a specific mechanism.</strong> State exactly why the choice doesn't affect the X→Y link — 'I don't see how it relates' is not a reason. GMATNinja: 'It's really easy to call something irrelevant when it's not.'",
+     "<strong>Familiar words ≠ correct logic.</strong> The trap choice repeats stimulus vocabulary in the wrong logical role. Check what it actually does to the argument.",
+     "<strong>Long-term average arguments: the strongest weakener concentrates the effect at a decisive moment.</strong> Not 'other parks also exist' but 'the effect was a one-time spike prior to the conclusion.'",
+     "<strong>Hard cap at 90 seconds.</strong> Verbal checkpoint Q5=35min, Q10=25min, Q15=15min. A Weaken question at 3+ minutes is stealing from Q19–23.",
+   ],
+   sticky:"State 'Because X, therefore Y' before choices. Test against the X→Y link. 'Irrelevant' needs a specific mechanism. 90-second hard cap.",
+   drill:"5 Weaken questions. Write the argument chain as one line before choices. Record time. Target: clear direction within 90 seconds.",
+   reps:[["GMAT Mock-4A-21","Ran out of time","Picked a supporting answer — argument scope not checked under pressure"],
+         ["GMAT Mock-4A-22","Ran out of time","Long-term average — strongest weakener concentrates effect at one decisive moment"],
+         ["GMAT Mock-1D-12","Trap answer","Attacked overall solution quality, not the exact reasoning gap"],
+         ["GMAT Mock-1D-21","Weak read","Rushed — didn't stabilize argument first; 'take a breath even when time is running out'"]],
+   patterns:["P-SLOW","P-SECTION","P-SCOPE","P-TRAP-KEYWORD","P-CHAIN"]},
+
+  {id:"rc-method",section:"RC",title:"RC · Method of Reasoning / Boldface",priority:"High",total:14,wrong:14,slow:0,
+   topReasons:[["Slow correct",4],["Misread/misinterpret",3],["Committed without stable model",2],["Guessed correctly",2]],
+   note:"4 slow-corrects show that tagging before choices is not happening consistently. Method questions reward pre-reading structure.",
+   primer:[
+     "<strong>Tag each paragraph's function before choices.</strong> 'What job does this paragraph do in the argument?' — not 'what topic does it cover?' Tags: Evidence / Counter / Conclusion / Method-basis.",
+     "<strong>Check attachment cues in the following paragraph.</strong> 'These observations,' 'based on these,' 'this evidence' — these show the preceding paragraph is a Method-basis or Evidence, not just background.",
+     "<strong>Never answer from passage-shape expectations.</strong> 'Last paragraph = conclusion' is not always true. Track what the passage actually does. (RC Ep3/4: science and humanities passages often subvert generic essay structure.)",
+     "<strong>Macro vs. micro: never substitute one for the other.</strong> If the question specifies a phrase or a specific sentence, the answer is local to that element — not the passage's main point.",
+     "<strong>Humanities passages: track whose opinion appears in every sentence.</strong> Author's view vs. scholars' view vs. historical figures' view — these must be tagged. Boldface errors often come from assigning the wrong speaker.",
+     "<strong>Hard cap at 2 minutes.</strong> 4 of 14 wrongs are slow-corrects. Tagging before choices should reduce this significantly.",
+   ],
+   sticky:"Tag each sentence: Evidence / Counter / Conclusion / Method-basis. Check attachment cues. Never answer from passage-shape expectations.",
+   drill:"3 RC passages — after reading, label each paragraph before any question. Time the labeling: target under 60 seconds.",
+   reps:[["GMAT Mock-3A-3","Slow correct","Vocab: vigorous, err, detrimental, accrue — unfamiliar words slowed evaluation"],
+         ["GMAT Mock-4B-3","Slow correct","Paragraph function not tagged before choices"]],
+   patterns:["P-FUZZ","P-PARA-FUNC","P-SCOPE"]},
+
+  {id:"cr-strengthen",section:"CR",title:"CR · Strengthen Argument",priority:"High",total:13,wrong:13,slow:0,
+   topReasons:[["Slow correct",4],["Ran out of time",2],["Missed detail",2],["Misread",2]],
+   note:"Timing is the primary failure mode — 4 slow-corrects and 2 timed-out. Arriving at correct answers too late.",
+   primer:[
+     "<strong>A strengthener makes Y more likely given X, or closes a known gap in the X→Y chain.</strong> It doesn't need to prove Y certain — just more probable than before.",
+     "<strong>Identify the gap before choices.</strong> What makes Y less certain given X? The strengthener plugs that specific gap.",
+     "<strong>'Plug a number to be sure.'</strong> When a choice makes a directional claim you're uncertain about, test with a concrete number — does it push the conclusion in the right direction?",
+     "<strong>Trap: choice repeats words without resolving the gap.</strong> 'B just repeats words from the passage without giving information that helps decide between the conflict.' Repetition without resolution = wrong.",
+     "<strong>Missed detail = you read at summary level.</strong> Strengthen questions sometimes hinge on a secondary clause. Read precisely — the detail that anchors the gap may be in a subordinate clause.",
+     "<strong>At 90 seconds without the gap identified: re-read the conclusion sentence.</strong> Don't jump to choices without a gap hypothesis. The correct answer almost always addresses one specific gap.",
+   ],
+   sticky:"Compress → identify gap → strengthener plugs it. Repetition without resolution = trap.",
+   drill:"5 Strengthen questions. Write 'Gap: ___' before choices. Test: does each choice close that specific gap?",
+   reps:[["GMAT Mock-3A-1","Slow correct","Vocab: 'inadvisable' — unfamiliar word slowed evaluation"],
+         ["GMAT Mock-3A-6","Slow correct","Trap: choice repeated words without resolving the conflict"],
+         ["Basic A-Final-22","Ran out of time","End-of-section — timing collapse"]],
+   patterns:["P-SLOW","P-SECTION","P-TRAP-KEYWORD","P-DETAIL","P-VOCAB"]},
+
+  {id:"cr-complete",section:"CR",title:"CR · Complete the Passage",priority:"High",total:12,wrong:12,slow:0,
+   topReasons:[["Slow correct",4],["Guessed correctly (unstable)",2],["Answered different question",2],["Didn't understand passage",1]],
+   note:"",
+   primer:[
+     "<strong>Identify the blank type before reading choices.</strong> Completing a conditional (if A, then ___), a conclusion (therefore ___), or evidence (because ___) — different blank types require different forms.",
+     "<strong>Write your completion hypothesis before reading choices.</strong> What does the logic lead to? A hypothesis prevents you from being swayed by plausible-sounding wrong choices.",
+     "<strong>'Otherwise' at end of question stem changes the entire task.</strong> Read every word of the question stem. 'What would be true otherwise?' is an inverted task — not the standard completion.",
+     "<strong>The correct completion follows logically, not plausibly.</strong> A completion that 'feels right' but can't be derived from the stated premises is wrong.",
+     "<strong>Scope of the blank is pinned to the antecedent.</strong> If the blank completes 'within this business unit,' completions about the whole company are out of scope.",
+     "<strong>At 90 seconds: write what the passage is leading to in one phrase, then match to choices.</strong> Don't evaluate each choice as the blank without a prior hypothesis.",
+   ],
+   sticky:"Write blank type + completion hypothesis before choices. Every word of the question stem matters.",
+   drill:"5 Complete questions. Write 'Blank type: ___' + 'My completion: ___' before choices. Did your hypothesis match the answer?",
+   reps:[["Basic A-6.4-11","Didn't understand","Attempted without stable argument model"],
+         ["GMAT Mock-4A-2","Slow correct","Distraction environment — focus collapsed"],
+         ["GMAT Mock-4B-14","Scope error","'Otherwise' at end of question stem ignored — entire task changed"]],
+   patterns:["P-SLOW","P-SCOPE","P-FUZZ","P-ANSWER"]},
+
+  {id:"cr-assumption",section:"CR",title:"CR · Identify Assumption",priority:"High",total:11,wrong:11,slow:0,
+   topReasons:[["Slow correct",4],["Eliminated correct as irrelevant",3],["Trap — surface match",1],["Didn't understand passage",1]],
+   note:"'Eliminated correct as irrelevant' (3) and 'slow correct' (4) are the two primary failure modes. Assumptions are being recognized — but eliminated before proper testing.",
+   primer:[
+     "<strong>An assumption is an unstated premise the conclusion requires in order to hold.</strong> It is not a restated fact, not a strengthener, and not a plausible bridge. The argument cannot proceed without it.",
+     "<strong>Apply the negation test.</strong> If negating the choice breaks the conclusion → assumption. If negating it has no effect → eliminate. This is the most reliable test.",
+     "<strong>'Seems irrelevant' is not a reason to eliminate without the negation test.</strong> 'Eliminate right question because it seemed irrelevant' cost 3 wrongs. Negate first, then decide.",
+     "<strong>Focus on the last clause, not just the last sentence.</strong> Many Assumption conclusions are buried in the last clause. 'Assumed the last part was extra detail, not the logical target.' (GMAT Mock-2B-2)",
+     "<strong>Number argument ≠ number assumption.</strong> 'City's tax revenue doesn't need cost as an assumption' — just because the argument involves numbers doesn't mean the assumption is about numbers. Trace what the conclusion actually requires.",
+     "<strong>Assumption ≠ Strengthen.</strong> Both help the argument — assumption is required (without it, the argument fails); strengthener only makes it more probable.",
+   ],
+   sticky:"Negation test: negate the choice — does the conclusion fall apart? Yes = assumption. 'Seems irrelevant' is not a reason to eliminate without the negation test.",
+   drill:"5 Assumption questions. Apply the negation test to every finalist before committing. Write 'Negated: ___' for the choice you would have called irrelevant.",
+   reps:[["GMAT Mock-2B-2","Eliminated correct","Last clause was the logical target — treated as extra detail"],
+         ["GMAT Mock-3A-17","Slow correct","Number argument → assumed number assumption; wrong — should trace conclusion directly"],
+         ["GMAT Mock-4A-14","Slow correct","Distraction environment — focus collapsed"]],
+   patterns:["P-SLOW","P-SCOPE","P-CHAIN","P-ANSWER"]},
+
+  {id:"rc-conclusion",section:"RC",title:"RC · Find the Conclusion",priority:"Medium",total:9,wrong:9,slow:0,
+   topReasons:[["Misread/misinterpret",3],["Committed without stable model",2],["Over-inferred",1],["Guessed incorrectly",1]],
+   note:"",
+   primer:[
+     "<strong>The author's conclusion is stated in the passage — not inferred.</strong> Find signal words: therefore, thus, so, this shows, I conclude. Not the last sentence by default.",
+     "<strong>Conclusion = same strength as the author's claim.</strong> No stronger. A descriptive policy outcome is not a recommendation. An explanation of a trend is not an assertion that the trend is universal.",
+     "<strong>Re-read the specific sentence before choosing.</strong> Don't answer from your summary — go back to the exact sentence that states the conclusion.",
+     "<strong>'Second approach' ≠ 'primary approach'.</strong> 'When X is difficult, investigators use Y instead' → Y is used when X fails, not Y is better than X.",
+     "<strong>Either/or ≠ 'instead of'.</strong> 'Outcome is either A or B' ≠ 'outcome is A instead of B.' Preserve the disjunction — don't convert to exclusivity.",
+   ],
+   sticky:"Find the conclusion signal word. The conclusion = that claim, same strength, same scope.",
+   drill:"5 RC Find-the-Conclusion questions — highlight the exact sentence in the passage before reading choices.",
+   reps:[["OG-VR2020-9","Over-inferred","Descriptive policy outcome read as a recommendation"],
+         ["OG-VR2020-46","Misread","'Y used when X is difficult' → Y is second approach, not primary"],
+         ["GMAT Mock-4A-8","Unstable model","Passage not understood — should restate structure first"]],
+   patterns:["P-FUZZ","P-ESCALATE","P-CHAIN"]},
+
+  {id:"cr-paradox",section:"CR",title:"CR · Resolve Paradox",priority:"Medium",total:6,wrong:6,slow:0,
+   topReasons:[["Misread/misinterpret",2],["Eliminated correct as irrelevant",1],["Ran out of time",1],["Slow correct",1]],
+   note:"",
+   primer:[
+     "<strong>A resolver must explain BOTH sides of the paradox simultaneously.</strong> Addressing only one side is wrong, regardless of how well it supports that side.",
+     "<strong>State the paradox in one sentence before choices.</strong> 'X is true, but Y is also true, and these seem to contradict because Z.' Only choices that dissolve the Z contradiction are candidates.",
+     "<strong>'Profits lower than competitors' ≠ 'won't be profitable'.</strong> Relative ranking ≠ absolute profitability. A common misread that causes correct resolvers to be eliminated.",
+     "<strong>Vocabulary gap affects resolver evaluation.</strong> 'Drought' = period of abnormally low rainfall. Build running vocab list after every session — add every unfamiliar word from TM notes.",
+     "<strong>Read every word of the resolver.</strong> The mechanism is often in the second half of the sentence — stopping at the first clause causes incorrect elimination.",
+   ],
+   sticky:"State the paradox as 'X is true, BUT Y is true.' The resolver must address both simultaneously.",
+   drill:"5 Resolve Paradox questions. Write 'Paradox: ___' before choices. Does your written paradox match what the choices are trying to resolve?",
+   reps:[["GMAT Mock-4B-2","Eliminated correct","'Lower profits than competitors' ≠ 'unprofitable' — relative ≠ absolute"],
+         ["OG-VR2020-147","Misread","'Drought' vocabulary gap — stimulus misinterpreted"]],
+   patterns:["P-SCOPE","P-VOCAB","P-ANSWER","P-SECTION"]},
+
+  {id:"cr-method",section:"CR",title:"CR · Method of Reasoning / Boldface",priority:"Medium",total:5,wrong:5,slow:0,
+   topReasons:[["Ran out of time",3],["Answered different question",1]],
+   note:"3 of 5 are pure timing failures. The remaining error is macro-vs-micro scope confusion.",
+   primer:[
+     "<strong>Tag every sentence's role before choices.</strong> Conclusion (therefore/thus/so/hence), Evidence (supports conclusion), Background (general premise), Counter-premise (acknowledged fact that complicates the conclusion).",
+     "<strong>Macro vs. micro are separate tasks.</strong> 'Implying' in a question = micro-function of a specific sentence. 'What does the passage argue overall?' = macro. Never substitute one for the other.",
+     "<strong>Boldface descriptions must match exactly, not approximately.</strong> 'Statement' ≠ 'evidence.' 'Counter-conclusion' ≠ 'premise.' The role label must be precise.",
+     "<strong>Hard cap at 2 minutes.</strong> 3 of 5 wrongs are timing failures. Tag quickly, match quickly.",
+   ],
+   sticky:"Tag each sentence: Evidence / Conclusion / Background / Counter. Match the tag to the choice description exactly.",
+   drill:"3 Boldface questions — tag all sentences before reading any choice. Goal: tagging complete within 45 seconds.",
+   reps:[["GMAT Mock-4B-11","Scope error","'Implying' = micro-function of that sentence, not macro-purpose of passage"],
+         ["GMAT Mock-4B-22","Ran out of time","Correct-tone option that wasn't precisely evidence — role mismatch"]],
+   patterns:["P-SECTION","P-SCOPE","P-ROLE"]},
+
+  {id:"cr-findconc",section:"CR",title:"CR · Find the Conclusion",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Over-inferred/story",1],["Stopped reading choice",1],["Guessed correctly",1]],
+   note:"",
+   primer:[
+     "<strong>Correct conclusion = same strength as the author's claim.</strong> An 'absolute moral version' of a conditional is wrong. Author says 'tends to be the case' → conclusion is not 'always the case.'",
+     "<strong>'Too boring' is not a reason to eliminate.</strong> The correct conclusion often directly paraphrases the main claim. 'I thought A was too shallow — turns out A was correct.' (GMAT Mock-4B-21)",
+     "<strong>Read every choice to the end before evaluating.</strong> The key qualifier is often at the end.",
+   ],
+   sticky:"Correct conclusion = same strength as author's claim. 'Boring / too obvious' is not a reason to eliminate.",
+   drill:"3 Find-the-Conclusion questions. Before choosing, ask: 'Is this stronger than what the author actually claimed?' If yes, eliminate.",
+   reps:[["GMAT Mock-4B-21","Rejected correct choice","Felt A was 'too boring/shallow' — A was the correct paraphrase of the main conclusion"]],
+   patterns:["P-ESCALATE","P-SHALLOW","P-ANSWER"]},
+
+  {id:"rc-cause",section:"RC",title:"RC · Cause & Effect",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Ran out of time",2],["Missed detail",1]],
+   note:"",
+   primer:[
+     "<strong>Track causal directionality.</strong> A → B (A causes B) vs. B → A vs. correlation. Questions test whether you've correctly identified which direction the causal arrow points.",
+     "<strong>Correlation vs. causation.</strong> Two things co-occur ≠ one causes the other. The correct answer often introduces an alternative cause, reverse direction, or confounding variable.",
+     "<strong>Hard cap.</strong> 2 of 4 are timing failures — fix upstream timing first.",
+   ],
+   sticky:"Track the direction of the causal arrow. Correlation ≠ causation.",
+   drill:"3 cause-and-effect questions — draw the causal arrow on scratchpad before reading choices.",
+   reps:[["Basic A-6.4-20","Ran out of time","End-of-section"],
+         ["Basic A-Final-15","Missed detail",""]],
+   patterns:["P-SECTION","P-CHAIN"]},
+
+  {id:"rc-assumption",section:"RC",title:"RC · Identify Assumption",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Guessed incorrectly",1],["Misread",1],["Trap — surface match",1]],
+   note:"",
+   primer:[
+     "<strong>RC Identify Assumption = what the author's argument requires but doesn't state.</strong> Apply the negation test.",
+     "<strong>Track secondary arguments.</strong> 'Missed the secondary part of Brown's argument — a minor point that was the assumption's target.' Read the full passage.",
+     "<strong>'Although' clauses introduce counter-arguments, not assumptions.</strong> The assumption bridges two distinct claims.",
+   ],
+   sticky:"Negation test for every candidate. Secondary arguments may carry the assumption.",
+   drill:"3 RC Assumption questions. Apply negation test to every finalist before committing.",
+   reps:[["GMAT Mock-4A-9","Vocab/misread","Subsistence, vessel, exacerbate — vocab gap + missed secondary argument"],
+         ["OG-VR2020-55","Misread","'Same mixture' means same variety but different proportions — not total quantity"]],
+   patterns:["P-DETAIL","P-SCOPE"]},
+
+  {id:"cr-inf",section:"CR",title:"CR · Inference",priority:"Low",total:4,wrong:4,slow:0,
+   topReasons:[["Misread",1],["Guessed correctly",1],["Didn't understand passage",1]],
+   note:"",
+   primer:[
+     "<strong>Count inference steps.</strong> 0 = stated; 1 = valid; 2+ = almost certainly wrong.",
+     "<strong>CR inference = what must be true given only the stated premises.</strong> Not likely. Not plausible. Must be entailed.",
+     "<strong>Vocabulary precision.</strong> 'Based on' ≠ fictional. 'Memoir' = real. 'Prose' = opposite of poetry. 'Take in' = absorb. One misread inverts the inference.",
+   ],
+   sticky:"Count steps. Must be true (not likely). One vocabulary misread can invert everything.",
+   drill:"3 CR Inference questions. After choosing, count the steps. Write the exact premises your answer relies on.",
+   reps:[["GMAT Mock-4B-12","Didn't understand","'A, into which B decays' means B→A — missed the directionality"]],
+   patterns:["P-CHAIN","P-ESCALATE","P-VOCAB"]},
+
+  {id:"cr-flaw",section:"CR",title:"CR · Logical Flaw",priority:"Low",total:3,wrong:3,slow:0,
+   topReasons:[["Stopped reading choice",1],["Misread",1],["EXCEPT scope error",1]],
+   note:"",
+   primer:[
+     "<strong>Read the full question stem.</strong> 'EXCEPT' changes the entire task — 'find the one that is NOT a flaw.' (GMAT Mock-5A-7: missed EXCEPT, answered in normal flaw mode.)",
+     "<strong>Read every answer choice completely.</strong> The mechanism that makes the choice correct was in the second half. (GMAT Mock-2B-13: stopped reading, eliminated correct.)",
+     "<strong>Hard to understand a choice? Rewrite with a comma.</strong> 'If I rewrite this as [A], [which means B], does it describe the flaw?'",
+   ],
+   sticky:"EXCEPT = find the one that is NOT. Read every choice to the end.",
+   drill:"3 Logical Flaw questions. Write Q-type + whether it's inverted (EXCEPT) before reading choices.",
+   reps:[["GMAT Mock-5A-7","EXCEPT missed","Missed EXCEPT — answered in normal flaw mode; found flaws instead of the non-flaw"],
+         ["GMAT Mock-2B-13","Stopped reading","Eliminated correct choice — key mechanism was in the second half"]],
+   patterns:["P-SCOPE","P-ANSWER"]},
+
+  {id:"rc-weaken",section:"RC",title:"RC · Weaken Argument",priority:"Low",total:3,wrong:3,slow:0,
+   topReasons:[["Unstable passage",1],["Slow correct",1]],
+   note:"",
+   primer:[
+     "<strong>Same rules as CR Weaken, applied to a passage-based argument.</strong> Compress the passage's argument chain before choices.",
+     "<strong>Late-section passages: slow down to stabilize.</strong> Rushing because of time causes worse errors than slowing would. One minute to stabilize saves three minutes of confused elimination.",
+     "<strong>For complex passage arguments: identify whose argument you are weakening.</strong> 'Gallagher's explanation: royalism → absolute self → feminist' — weaken Gallagher's causal chain specifically.",
+   ],
+   sticky:"Compress passage argument → compress + test weakener against that specific chain.",
+   drill:"3 RC Weaken questions. Write the argument chain from the passage before touching choices.",
+   reps:[["GMATNinja-RC4-2.3","Unstable passage","Didn't address Gallagher's causal chain specifically — adjacent scholar's view used instead"],
+         ["GMAT Mock-5B-17","Unstable passage","Late science passage with few minutes left — rushed, couldn't stabilize"]],
+   patterns:["P-FUZZ","P-SECTION","P-CHAIN"]},
+
+  {id:"cr-unclass",section:"CR",title:"CR · Unclassified",priority:"High",total:14,wrong:14,slow:0,
+   topReasons:[["Ran out of time",6],["Guessed correctly (unstable)",3],["Guessed incorrectly",2]],
+   note:"6 of 14 are pure timing failures. 5 are guesses (3 correct, 2 wrong) — unstable. Fix: checkpoint protocol.",
+   primer:[
+     "<strong>Section checkpoint (Verbal, 23 questions):</strong> Q5 done → 35 min remaining. Q10 done → 25 min remaining. Q15 done → 15 min remaining.",
+     "<strong>If under target at any checkpoint: cap next 5 questions at 90 sec each.</strong>",
+     "<strong>Guessed correctly ≠ controlled correctly.</strong> After any guess: write what made you uncertain.",
+   ],
+   sticky:"Q5=35min. Q10=25min. Q15=15min. Under target → cap next 5 at 90s.",
+   drill:"Full timed Verbal section. At Q5, Q10, Q15: write clock reading on scratchpad. Track the gap.",
+   reps:[["GMAT Mock-1C-21","Guessed incorrectly",""],
+         ["GMAT Mock-2B","Guessed correctly",""]] ,
+   patterns:["P-SECTION","P-SLOW","P-GUESS-WARN"]},
+
+  {id:"untagged",section:"CR",title:"Untagged (Timed Out)",priority:"High",total:29,wrong:29,slow:0,
+   topReasons:[["Ran out of time",13],["Slow correct (consumed time)",8]],
+   note:"All 29 are section-end Q19–23 failures. 13 forced wrong + 8 slow-correct tax from earlier questions = compound timing failure.",
+   primer:[
+     "<strong>These are caused by overspending on Q1–Q15.</strong> Apply the checkpoint protocol strictly.",
+     "<strong>No 'Review Later' for Verbal.</strong> Every question answered in sequence.",
+     "<strong>Q15 with 15 min left = exactly 1.9 min per question for Q16–23. Zero slack.</strong>",
+   ],
+   sticky:"Compound timing failure — upstream. Fix Q1–Q15 pacing first.",
+   drill:"Full timed Verbal section. Track clock at Q5, Q10, Q15. Log the gap each session.",
+   reps:[],
+   patterns:["P-SECTION","P-SLOW"]},
+];
+
+let currentFilter = 'All';
+
+function renderCards() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const container = document.getElementById('cards-container');
+  const visible = CARDS.filter(c => {
+    if (currentFilter === 'CR' && c.section !== 'CR') return false;
+    if (currentFilter === 'RC' && c.section !== 'RC') return false;
+    if (currentFilter === 'High' && c.priority !== 'High') return false;
+    if (currentFilter === 'Medium' && c.priority !== 'Medium') return false;
+    if (currentFilter === 'Low' && c.priority !== 'Low') return false;
+    if (search && !c.title.toLowerCase().includes(search) && !c.id.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  // Group by section
+  let lastSection = '';
+  container.innerHTML = visible.map(c => {
+    const pclass = c.priority === 'High' ? 'danger' : c.priority === 'Medium' ? 'warning' : 'neutral';
+    const tagClass = c.section === 'RC' ? 'tag-rc' : 'tag-cr';
+    const wrongStr = c.wrong > 0 ? `<span class="cnt-d">${c.wrong}✗</span>` : '';
+    const slowStr = c.slow > 0 ? `<span class="cnt-w">${c.slow}⏱</span>` : '';
+    const failRows = c.topReasons.map(([r,n]) => `<tr><td>${r}</td><td class="fail-cnt">${n}</td></tr>`).join('');
+    const primerItems = c.primer.map(p => `<li>${p}</li>`).join('');
+    const repRows = c.reps.map(([code,reason,note]) => `<tr><td class="rep-code">${code}</td><td class="rep-reason">${reason}</td><td>${note}</td></tr>`).join('');
+    const ptags = c.patterns.map(p => `<span class="ptag">${p}</span>`).join('');
+    return `<div class="topic-card" data-section="${c.section}" data-priority="${c.priority}">
+      <div class="topic-header" onclick="toggle('${c.id}')">
+        <span class="topic-section-tag ${tagClass}">${c.section}</span>
+        <span class="topic-title" style="flex:1">${c.title.replace(/^(CR|RC) · /,'')}</span>
+        <span class="badge ${pclass}">${c.priority}</span>
+        ${wrongStr}${slowStr}
+        <span class="chevron" id="chev-${c.id}">▼</span>
+      </div>
+      <div class="topic-body" id="body-${c.id}">
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="mini-val">${c.total}</div><div class="mini-label">Total</div></div>
+          <div class="mini-stat danger"><div class="mini-val">${c.wrong}</div><div class="mini-label">Wrong</div></div>
+          <div class="mini-stat warning"><div class="mini-val">${c.slow}</div><div class="mini-label">Slow</div></div>
+        </div>
+        <div class="sec-label">Failure-mode breakdown</div>
+        <table class="fail-table"><thead><tr><th>Reason</th><th>Count</th></tr></thead><tbody>${failRows}</tbody></table>
+        ${c.note ? `<div class="fail-note">${c.note}</div>` : ''}
+        <div class="sec-label">Concept primer</div>
+        <ol class="concept-list">${primerItems}</ol>
+        <div class="callout info"><div class="callout-label">Sticky rule</div>${c.sticky}</div>
+        <div class="callout neutral"><div class="callout-label">Drill</div>${c.drill}</div>
+        ${c.reps.length > 0 ? `<div class="sec-label">Representative questions</div>
+        <table class="rep-table"><thead><tr><th>Code</th><th>Reason</th><th>Note</th></tr></thead><tbody>${repRows}</tbody></table>` : ''}
+        <div class="sec-label">Linked v1 patterns</div>
+        <div class="pattern-tags">${ptags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id) {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('#filters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function filterCards() { renderCards(); }
+renderCards();
+</script>
+</body>
+</html>
